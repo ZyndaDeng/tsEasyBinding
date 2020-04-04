@@ -1,0 +1,12 @@
+{
+  "name": "build_cpp",
+  "version": "1.0.0",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "node ."
+  },
+  "dependencies": {
+    "@types/node": "^13.9.0",
+    "fs": "0.0.1-security"
+  }
+}

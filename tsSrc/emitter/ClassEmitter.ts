@@ -1,8 +1,9 @@
-import { ClassData, MethodData, GetterData } from "../BindingData";
+
 import { ArgData } from "../ArgDatas";
 import { Emitter } from "./Emitter";
 import { Writter } from "../writter";
 import { customize } from "./SysEmitter";
+import { JSBClass, MethodData, GetterData } from "../binding/JSBClass";
 
 
 
@@ -33,7 +34,7 @@ export class ClassEmitter implements Emitter{
 
 
 
-    constructor(protected data: ClassData,protected w:Writter) {
+    constructor(protected data: JSBClass,protected w:Writter) {
 
     }
 

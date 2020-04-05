@@ -1,21 +1,24 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const BindingData_1 = require("../BindingData");
 const ClassEmitter_1 = require("./ClassEmitter");
 const ModuleEmitter_1 = require("./ModuleEmitter");
 const FuncEmitter_1 = require("./FuncEmitter");
 const VarEmitter_1 = require("./VarEmitter");
+const JSBClass_1 = require("../binding/JSBClass");
+const JSBModule_1 = require("../binding/JSBModule");
+const JSBFunction_1 = require("../binding/JSBFunction");
+const JSBVar_1 = require("../binding/JSBVar");
 function CreateEmitter(data, writter) {
-    if (BindingData_1.ClassData.IsMyType(data)) {
+    if (JSBClass_1.JSBClass.IsMyType(data)) {
         return new ClassEmitter_1.ClassEmitter(data, writter);
     }
-    else if (BindingData_1.ModuleData.IsMyType(data)) {
+    else if (JSBModule_1.JSBModule.IsMyType(data)) {
         return new ModuleEmitter_1.ModuleEmitter(data, writter);
     }
-    else if (BindingData_1.FuncData.IsMyType(data)) {
+    else if (JSBFunction_1.JSBFunction.IsMyType(data)) {
         return new FuncEmitter_1.FuncEmitter(data, writter);
     }
-    else if (BindingData_1.VarData.IsMyType(data)) {
+    else if (JSBVar_1.JSBVar.IsMyType(data)) {
         return new VarEmitter_1.VarEmitter(data, writter);
     }
     else {

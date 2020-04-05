@@ -1,4 +1,4 @@
-import { ModuleData, BindingData, ClassData, BaseBindingData, FuncData, VarData } from "../BindingData";
+import { BindingData,  BaseBindingData } from "../BindingData";
 import * as fs from "fs"
 import { Sys } from "../Sys";
 import * as ts from "typescript"
@@ -8,7 +8,10 @@ import { ClassEmitter } from "./ClassEmitter";
 import { ModuleEmitter } from "./ModuleEmitter";
 import { FuncEmitter } from "./FuncEmitter";
 import { CreateEmitter } from "./EmitterFactory";
-import { TsEmitter } from "../TsEmitter";
+import { JSBModule } from "../binding/JSBModule";
+import { JSBClass } from "../binding/JSBClass";
+import { JSBFunction } from "../binding/JSBFunction";
+import { JSBVar } from "../binding/JSBVar";
 
 export interface IBindingPackage {
     includeStr: string;
@@ -19,7 +22,6 @@ export interface IBindingPackage {
 export interface BindingConfig {
     packages: IBindingPackage[];
     cppPath: string;
-    tsLibPath: string;
 }
 
 export let customize:{[name:string]:string}={};
@@ -29,7 +31,7 @@ export class SysEmitter {
 
 
 
-    protected moduleStack: Array<ModuleData>;
+    protected moduleStack: Array<JSBModule>;
     protected processData: Array<BaseBindingData>;
 
     constructor(protected config: BindingConfig) {
@@ -40,7 +42,7 @@ export class SysEmitter {
         // this.undefineList = {};
     }
 
-    openModule(module: ModuleData) {
+    openModule(module: JSBModule) {
         this.moduleStack.push(module);
     }
 
@@ -94,18 +96,18 @@ export class SysEmitter {
     protected readSourceFile(sf: ts.Statement) {
 
         if (ts.isClassDeclaration(sf) && this.isDeclare(sf)) {
-            let classData = new ClassData(sf);
+            let classData = new JSBClass(sf);
             this.addData(classData);
         } else if (ts.isFunctionDeclaration(sf) && this.isDeclare(sf)) {
-            let funcData = new FuncData(sf);
+            let funcData = new JSBFunction(sf);
             this.addData(funcData);
         } else if (ts.isVariableDeclaration(sf) && this.isDeclare(sf)) {
-            let varData = new VarData(sf);
+            let varData = new JSBVar(sf);
             this.addData(varData);
         } else if (ts.isEnumDeclaration(sf)) {
             enumDefined.push(sf.name.getText());
         } else if (ts.isModuleDeclaration(sf)) {
-            let mod = new ModuleData(sf.name.getText());
+            let mod = new JSBModule(sf.name.getText());
             this.addData(mod);
             this.openModule(mod);
             let body = sf.body;
@@ -133,16 +135,6 @@ export class SysEmitter {
         return "js_" + pack.name + "_package_api";
     }
 
-    protected writeTs(p: IBindingPackage) {
-        let ret = ""
-        for (let f of p.tsFiles) {
-            f = Sys.getFullFileName(f);
-            let data = fs.readFileSync(f, { encoding: "UTF-8" });
-            let ts = new TsEmitter(data);
-            ret += ts.emit();
-        }
-        return ret;
-    }
 
     emit() {
         let arr = this.config.packages;
@@ -155,16 +147,6 @@ export class SysEmitter {
                 this.readSourceFile(n);
             }
 
-            if (this.config.tsLibPath) {
-                let dts = this.writeTs(a);
-                fs.writeFile(Sys.getFullFileName(this.config.tsLibPath + a.name + ".ts"), dts, { encoding: "UTF-8" }, (err) => {
-                    if (err) {
-                        console.log("文件写入失败:" + err.message);
-                    } else {
-                        console.log("写入ts成功:" + a.name);
-                    }
-                });
-            }
             let writter = new Writter(a.includeStr).newLine();
             let emitters = new Array<Emitter>();
             for (let d of this.processData) {

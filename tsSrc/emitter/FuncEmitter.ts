@@ -1,15 +1,15 @@
 import * as ts from "typescript"
-import { MethodData, FuncData } from "../BindingData"
 import { buildArgData } from "../ArgDatas";
 import { Writter } from "../writter";
 import { Emitter } from "./Emitter";
+import { JSBFunction } from "../binding/JSBFunction";
 
 export class FuncEmitter implements Emitter {
 
 
     protected w: Writter;
 
-    constructor(protected data: FuncData, writter: Writter) {
+    constructor(protected data: JSBFunction, writter: Writter) {
         this.w = writter;
     }
 

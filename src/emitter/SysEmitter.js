@@ -7,13 +7,15 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const BindingData_1 = require("../BindingData");
 const fs = __importStar(require("fs"));
 const Sys_1 = require("../Sys");
 const ts = __importStar(require("typescript"));
 const writter_1 = require("../writter");
 const EmitterFactory_1 = require("./EmitterFactory");
-const TsEmitter_1 = require("../TsEmitter");
+const JSBModule_1 = require("../binding/JSBModule");
+const JSBClass_1 = require("../binding/JSBClass");
+const JSBFunction_1 = require("../binding/JSBFunction");
+const JSBVar_1 = require("../binding/JSBVar");
 exports.customize = {};
 exports.enumDefined = new Array();
 class SysEmitter {
@@ -70,22 +72,22 @@ class SysEmitter {
     }
     readSourceFile(sf) {
         if (ts.isClassDeclaration(sf) && this.isDeclare(sf)) {
-            let classData = new BindingData_1.ClassData(sf);
+            let classData = new JSBClass_1.JSBClass(sf);
             this.addData(classData);
         }
         else if (ts.isFunctionDeclaration(sf) && this.isDeclare(sf)) {
-            let funcData = new BindingData_1.FuncData(sf);
+            let funcData = new JSBFunction_1.JSBFunction(sf);
             this.addData(funcData);
         }
         else if (ts.isVariableDeclaration(sf) && this.isDeclare(sf)) {
-            let varData = new BindingData_1.VarData(sf);
+            let varData = new JSBVar_1.JSBVar(sf);
             this.addData(varData);
         }
         else if (ts.isEnumDeclaration(sf)) {
             exports.enumDefined.push(sf.name.getText());
         }
         else if (ts.isModuleDeclaration(sf)) {
-            let mod = new BindingData_1.ModuleData(sf.name.getText());
+            let mod = new JSBModule_1.JSBModule(sf.name.getText());
             this.addData(mod);
             this.openModule(mod);
             let body = sf.body;
@@ -110,16 +112,6 @@ class SysEmitter {
     packageName(pack) {
         return "js_" + pack.name + "_package_api";
     }
-    writeTs(p) {
-        let ret = "";
-        for (let f of p.tsFiles) {
-            f = Sys_1.Sys.getFullFileName(f);
-            let data = fs.readFileSync(f, { encoding: "UTF-8" });
-            let ts = new TsEmitter_1.TsEmitter(data);
-            ret += ts.emit();
-        }
-        return ret;
-    }
     emit() {
         let arr = this.config.packages;
         let idx = 0;
@@ -129,21 +121,7 @@ class SysEmitter {
             for (let n of sf) {
                 this.readSourceFile(n);
             }
-            if (this.config.tsLibPath) {
-                let dts = this.writeTs(a);
-                fs.writeFile(Sys_1.Sys.getFullFileName(this.config.tsLibPath + a.name + ".ts"), dts, { encoding: "UTF-8" }, (err) => {
-                    if (err) {
-                        console.log("文件写入失败:" + err.message);
-                    }
-                    else {
-                        console.log("写入ts成功:" + a.name);
-                    }
-                });
-            }
             let writter = new writter_1.Writter(a.includeStr).newLine();
-            writter.writeText("#include <JavaScript/easyBindings/ValTran.h>").newLine();
-            writter.writeText("#include <JavaScript/easyBindings/BindingSys.h>").newLine();
-            writter.writeText("using namespace Urho3D;").newLine().newLine();
             let emitters = new Array();
             for (let d of this.processData) {
                 emitters.push(EmitterFactory_1.CreateEmitter(d, writter));

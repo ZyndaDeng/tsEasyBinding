@@ -1,7 +1,8 @@
-import { ModuleData } from "../BindingData";
+
 import { Writter } from "../writter";
 import { Emitter } from "./Emitter";
 import { CreateEmitter } from "./EmitterFactory";
+import { JSBModule } from "../binding/JSBModule";
 
 
 
@@ -23,7 +24,7 @@ export class ModuleEmitter implements Emitter{
     }
 
     
-    constructor(protected data:ModuleData,protected w:Writter){
+    constructor(protected data:JSBModule,protected w:Writter){
 
     }
 

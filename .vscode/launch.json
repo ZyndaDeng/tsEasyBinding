@@ -7,7 +7,7 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
+            "name": "生成绑定",
             "skipFiles": [
                 "<node_internals>/**"
             ],

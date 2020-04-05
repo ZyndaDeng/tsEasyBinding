@@ -5,7 +5,6 @@ class BindingPackage {
         this.includeStr = includeStr;
         this.name = name;
         this.tsFiles = dtsFiles;
-        // this.defArr = [];
     }
 }
 exports.BindingPackage = BindingPackage;

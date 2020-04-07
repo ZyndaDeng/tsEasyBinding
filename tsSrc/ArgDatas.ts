@@ -180,7 +180,7 @@ export class NativeArg extends ArgDataBase {
         this.type = p.getText();
     }
     checkFunc(idx: number): string {
-        return "js_is_native<" + this.type + ">(ctx," + idx + ")";
+        return "js_is_native(ctx," + idx + ",\""+ this.type+"\")";
     }
     getFunc(idx: number): string {
        

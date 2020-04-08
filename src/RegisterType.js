@@ -192,6 +192,57 @@ function RegisterType() {
         }
     }
     ArgDatas_1.registerArgs["VariantMap"] = VariantMapArg;
+    class ComponentMapArg extends ArgDatas_1.ArgDataBase {
+        constructor(p, def) {
+            super(p, def);
+            this.type = "Component";
+        }
+        checkFunc(idx) {
+            return "js_is_native(ctx," + idx + ",\"" + this.type + "\")";
+        }
+        getFunc(idx) {
+            return this.type + "* n" + idx + "=js_to_native_object<" + this.type + ">(ctx," + idx + ");";
+        }
+        setFunc() {
+            return `if(ret)js_push_native_object(ctx,ret,ret->GetTypeName());else duk_push_undefined(ctx);`;
+        }
+    }
+    ArgDatas_1.registerArgs["ComponentMap[K]"] = ComponentMapArg;
+    ArgDatas_1.registerArgs["Component"] = ComponentMapArg;
+    ArgDatas_1.registerArgs["K"] = ArgDatas_1.StringArg;
+    class UIElementMapArg extends ArgDatas_1.ArgDataBase {
+        constructor(p, def) {
+            super(p, def);
+            this.type = "UIElement";
+        }
+        checkFunc(idx) {
+            return "js_is_native(ctx," + idx + ",\"" + this.type + "\")";
+        }
+        getFunc(idx) {
+            return this.type + "* n" + idx + "=js_to_native_object<" + this.type + ">(ctx," + idx + ");";
+        }
+        setFunc() {
+            return `if(ret)js_push_native_object(ctx,ret,ret->GetTypeName());else duk_push_undefined(ctx);`;
+        }
+    }
+    ArgDatas_1.registerArgs["UIElementMap[K]"] = UIElementMapArg;
+    ArgDatas_1.registerArgs["UIElement"] = UIElementMapArg;
+    class TouchStateArg extends ArgDatas_1.ArgDataBase {
+        constructor(p, def) {
+            super(p, def);
+            this.type = "TouchState";
+        }
+        checkFunc(idx) {
+            return "duk_is_object(ctx," + idx + ")";
+        }
+        getFunc(idx) {
+            throw new Error("not defined");
+        }
+        setFunc() {
+            return "js_push_TouchState(ctx,ret);";
+        }
+    }
+    ArgDatas_1.registerArgs["VariantMap"] = VariantMapArg;
 }
 exports.RegisterType = RegisterType;
 function RegisterCustomize() {

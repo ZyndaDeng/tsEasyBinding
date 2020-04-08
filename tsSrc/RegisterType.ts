@@ -1,5 +1,5 @@
 import * as ts from "typescript"
-import { ArgDataBase, registerArgs, DefaultTypeArg } from "./ArgDatas";
+import { ArgDataBase, registerArgs, DefaultTypeArg, StringArg } from "./ArgDatas";
 import { customize } from "./emitter/SysEmitter";
 
 export function RegisterType() {
@@ -208,6 +208,64 @@ export function RegisterType() {
         }
         setFunc(): string {
             return "js_push_VariantMap(ctx,ret);"
+        }
+    }
+    registerArgs["VariantMap"] = VariantMapArg
+
+    class ComponentMapArg extends ArgDataBase {
+        constructor(p: ts.TypeNode, def?: boolean) {
+            super(p, def);
+            this.type = "Component";
+        }
+        checkFunc(idx: number): string {
+            return "js_is_native(ctx," + idx + ",\""+ this.type+"\")";
+        }
+        getFunc(idx: number): string {
+       
+            return this.type + "* n" + idx + "=js_to_native_object<" + this.type + ">(ctx," + idx + ");"
+        }
+        setFunc(): string {
+            return `if(ret)js_push_native_object(ctx,ret,ret->GetTypeName());else duk_push_undefined(ctx);`
+        }
+    }
+    registerArgs["ComponentMap[K]"] = ComponentMapArg
+    registerArgs["Component"] = ComponentMapArg
+    registerArgs["K"]=StringArg;
+
+    class UIElementMapArg extends ArgDataBase {
+        constructor(p: ts.TypeNode, def?: boolean) {
+            super(p, def);
+            this.type = "UIElement";
+        }
+        checkFunc(idx: number): string {
+            return "js_is_native(ctx," + idx + ",\""+ this.type+"\")";
+        }
+        getFunc(idx: number): string {
+       
+            return this.type + "* n" + idx + "=js_to_native_object<" + this.type + ">(ctx," + idx + ");"
+        }
+        setFunc(): string {
+            return `if(ret)js_push_native_object(ctx,ret,ret->GetTypeName());else duk_push_undefined(ctx);`
+        }
+    }
+    registerArgs["UIElementMap[K]"] = UIElementMapArg
+    registerArgs["UIElement"] = UIElementMapArg
+
+    class TouchStateArg extends ArgDataBase {
+        constructor(p: ts.TypeNode, def?: boolean) {
+            super(p, def);
+            this.type = "TouchState";
+        }
+        checkFunc(idx: number): string {
+            return "duk_is_object(ctx," + idx + ")";
+        }
+        getFunc(idx: number): string {
+
+           throw new Error("not defined");
+
+        }
+        setFunc(): string {
+            return "js_push_TouchState(ctx,ret);"
         }
     }
     registerArgs["VariantMap"] = VariantMapArg

@@ -203,6 +203,7 @@ using namespace Urho3D;`,
     #include "Graphics/TextureCube.h"
     #include "Graphics/Viewport.h"
     #include "Graphics/Zone.h"
+    #include "Scene/Scene.h"
     #include <JavaScript/easyBindings/ValTran.h>
 #include <JavaScript/easyBindings/BindingSys.h>
 using namespace Urho3D;`,

@@ -242,7 +242,7 @@ function RegisterType() {
             return "js_push_TouchState(ctx,ret);";
         }
     }
-    ArgDatas_1.registerArgs["VariantMap"] = VariantMapArg;
+    ArgDatas_1.registerArgs["TouchState"] = TouchStateArg;
 }
 exports.RegisterType = RegisterType;
 function RegisterCustomize() {

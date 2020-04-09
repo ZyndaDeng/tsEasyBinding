@@ -268,7 +268,7 @@ export function RegisterType() {
             return "js_push_TouchState(ctx,ret);"
         }
     }
-    registerArgs["VariantMap"] = VariantMapArg
+    registerArgs["TouchState"] = TouchStateArg
 }
 
 export function RegisterCustomize(){

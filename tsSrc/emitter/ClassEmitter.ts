@@ -103,23 +103,18 @@ export class ClassEmitter implements Emitter{
         w.writeText("if (!duk_is_constructor_call(ctx))").writeLeftBracket().newLine();
         w.writeText("return DUK_RET_TYPE_ERROR;").newLine();
         w.writeRightBracket().newLine().newLine();
-        w.writeText("duk_push_this(ctx);").newLine();
+        w.writeText("int top=duk_get_top(ctx);").newLine();
+        w.writeText("duk_push_this(ctx);//[this]").newLine();
         w.writeText("void *ptr = duk_get_heapptr(ctx, -1);").newLine().newLine();
+        w.writeText("duk_pop(ctx);//[]").newLine();
         
-        let idx = 0;
-        if (this.data.ctor) {
-            for (let a of this.data.ctor) {
-                this.buildArgs(a, idx) ;
-                w.newLine();
-                idx++;
-            }
-        }
        this.buildNativeCtor(w) ;
        w.newLine();
+       w.writeText("duk_push_heapptr(ctx,ptr);//[this]").newLine();
        w.writeText("AddObject(ptr,native);").newLine();
        w.writeText("duk_push_c_function(ctx, default_finalizer, DUK_VARARGS);").newLine();
        w.writeText("duk_set_finalizer(ctx,-2);").newLine();
-       w.writeText("duk_pop(ctx);").newLine();
+       w.writeText("duk_pop(ctx);//[]").newLine();
        w.writeText("return 0;").newLine();
        w.writeRightBracket().newLine().newLine();
     }
@@ -161,7 +156,7 @@ export class ClassEmitter implements Emitter{
         }
     }
 
-    /**创建带特点函数的条件语句 */
+    /**创建带特定函数的条件语句 */
     protected buildFuncWithArgs(w:Writter,f: MethodData, args: ArgData[]) {
         //判断函数类型条件语句
         w.writeText("if(");
@@ -319,13 +314,44 @@ export class ClassEmitter implements Emitter{
      * 创建本地对象new语句
      */
     protected buildNativeCtor(w:Writter) {
-        let nativeName = this.data.name;
-        if (this.data.nativeName) nativeName = this.data.nativeName;
+        let nativeName = this.data.nativeName;
+
+        w.writeText(nativeName + "* native=nullptr;").newLine();
+        w.writeText("duk_push_heap_stash(ctx);//[stash]").newLine();
+        w.writeText("duk_get_prop_string(ctx,-1,jsNewObjWithNative);//[stash,pointer]").newLine();
+        w.writeText("if(duk_is_pointer(ctx,-1))").writeLeftBracket().newLine();
+        w.writeText("native=("+nativeName+" *)duk_get_pointer(ctx,-1);").newLine();
+        w.writeText("duk_push_nan(ctx);//[this ,stash,pointer,nan]").newLine();
+        w.writeText("duk_put_prop_string(ctx,-3,jsNewObjWithNative);//[stash,pointer]").newLine();
+        w.writeText("duk_pop_2(ctx);//[]").newLine();
+        w.writeRightBracket().writeText("else").writeLeftBracket().newLine();
+        w.writeText("duk_pop_2(ctx);//[]").newLine();
+        if(this.data.ctor){
+            this.buildCtorWithArg(w,this.data.ctor);
+            if(this.data.othersCtor){
+                for(let args of this.data.othersCtor){
+                    w.writeRightBracket().writeText("else ");
+                    this.buildCtorWithArg(w,args);
+                }
+            }
+            w.writeRightBracket().newLine();
+        }else{
+            this.buildCtorFunc(w,undefined);
+        }
+        w.newLine();
+        w.writeRightBracket().newLine();
+        w.newLine();
+        
+        
+    }
+
+    protected buildCtorFunc(w:Writter,args:ArgData[]|undefined){
+        let nativeName = this.data.nativeName;
         let ctorFunc = " native=new " + nativeName + "(jsGetContext(ctx)";
         let next = ",";
         let idx = 0;
-        if (this.data.ctor) {
-            for (let a of this.data.ctor) {
+        if (args) {
+            for (let a of args) {
                 ctorFunc += next;
                 ctorFunc += "n" + idx;
                 next = ",";
@@ -336,20 +362,53 @@ export class ClassEmitter implements Emitter{
         } else {
             ctorFunc = `duk_error(ctx, DUK_ERR_TYPE_ERROR, "obj can not new");`
         }
-
-        w.writeText(nativeName + "* native=nullptr;").newLine();
-        w.writeText("duk_push_heap_stash(ctx);//[this ,stash]").newLine();
-        w.writeText("duk_get_prop_string(ctx,-1,jsNewObjWithNative);//[this ,stash,pointer]").newLine();
-        w.writeText("if(duk_is_pointer(ctx,-1))").writeLeftBracket().newLine();
-        w.writeText("native=("+nativeName+" *)duk_get_pointer(ctx,-1);").newLine();
-        w.writeText("duk_push_nan(ctx);//[this ,stash,pointer,nan]").newLine();
-        w.writeText("duk_put_prop_string(ctx,-3,jsNewObjWithNative);//[this ,stash,pointer]").newLine();
-        w.writeRightBracket().writeText("else").writeLeftBracket().newLine();
         w.writeText(ctorFunc).newLine();
-        w.writeRightBracket().newLine();
-        w.writeText("duk_pop_n(ctx,2);//[this]").newLine().newLine();
-        
-        
+    }
+
+    /**带特定参数个数的构造函数 */
+    protected buildCtorWithArg(w:Writter,args:ArgData[]){
+        //判断函数类型条件语句
+        w.writeText("if(");
+        let next = "";
+
+        let minCount = args.length;//最少参数个数
+        for (let i = args.length - 1; i > 0; i--) {
+            if (args[i].ignore) {
+                minCount--;
+            } else {
+                break;
+            }
+        }
+        if (args.length > 0) {
+            let idx = 0;
+            for (let a of args) {
+                w.writeText(next +this.checkArgs(a, idx)).newLine();
+                next = "&&";
+                idx++;
+            }
+        } else {
+            w.writeText("top==0");
+        }
+        w.writeText(")").writeLeftBracket().newLine();
+        let nextFunc=()=>{
+            w.writeText("if(");
+        }
+        //判断函数个数条件语句
+        for (let i = minCount; i <= args.length; i++) {
+            nextFunc();
+            w.writeText("top==" + i + ")").writeLeftBracket().newLine();
+            for (let j = 0; j < i; j++) {
+                let a = args[j];
+                w.writeText(this.buildArgs(a, j)).newLine();
+            }
+           this.buildCtorFunc(w, args.slice(0,i));
+           nextFunc=()=>{
+               w.writeRightBracket().writeText("else if(")
+           }
+        }
+        w.writeRightBracket().writeText("else").writeLeftBracket().newLine();
+        w.writeText(`duk_error(ctx, DUK_ERR_TYPE_ERROR, "invalid argument value: ` + args.length + `");`).newLine().writeRightBracket();
+        w.newLine();
     }
     /**
      * 创建本地函数调用语句，包括push入栈操作

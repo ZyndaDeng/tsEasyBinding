@@ -269,6 +269,25 @@ export function RegisterType() {
         }
     }
     registerArgs["TouchState"] = TouchStateArg
+
+    class ILogicComponentArg extends ArgDataBase {
+        constructor(p: ts.TypeNode, def?: boolean) {
+            super(p, def);
+            this.type = "TouchState";
+        }
+        checkFunc(idx: number): string {
+            return "duk_is_object(ctx," + idx + ")";
+        }
+        getFunc(idx: number): string {
+
+            return "SharedPtr< JsDelegate> n"+idx+"(new JsDelegate(jsGetContext(ctx)));void* ptrArg = duk_get_heapptr(ctx, "+idx+");NativeRetainJs(ctx, ptrArg, n"+idx+");"
+
+        }
+        setFunc(): string {
+            throw new Error("not defined");
+        }
+    }
+    registerArgs["ILogicComponent"] = ILogicComponentArg
 }
 
 export function RegisterCustomize(){

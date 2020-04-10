@@ -148,7 +148,7 @@ class ClassEmitter {
         w.writeText("if(");
         let next = "";
         let minCount = args.length; //最少参数个数
-        for (let i = args.length - 1; i > 0; i--) {
+        for (let i = args.length - 1; i >= 0; i--) {
             if (args[i].ignore) {
                 minCount--;
             }

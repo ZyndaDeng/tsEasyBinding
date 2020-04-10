@@ -243,6 +243,22 @@ function RegisterType() {
         }
     }
     ArgDatas_1.registerArgs["TouchState"] = TouchStateArg;
+    class ILogicComponentArg extends ArgDatas_1.ArgDataBase {
+        constructor(p, def) {
+            super(p, def);
+            this.type = "TouchState";
+        }
+        checkFunc(idx) {
+            return "duk_is_object(ctx," + idx + ")";
+        }
+        getFunc(idx) {
+            return "SharedPtr< JsDelegate> n" + idx + "(new JsDelegate(jsGetContext(ctx)));void* ptrArg = duk_get_heapptr(ctx, " + idx + ");NativeRetainJs(ctx, ptrArg, n" + idx + ");";
+        }
+        setFunc() {
+            throw new Error("not defined");
+        }
+    }
+    ArgDatas_1.registerArgs["ILogicComponent"] = ILogicComponentArg;
 }
 exports.RegisterType = RegisterType;
 function RegisterCustomize() {

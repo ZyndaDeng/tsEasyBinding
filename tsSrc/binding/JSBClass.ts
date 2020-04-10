@@ -225,6 +225,7 @@ export class JSBClass extends BaseBindingData {
     nativeName: string;
     extend: string;
     ctor?: Array<ArgData>;
+    customizeName?:string; 
     othersCtor?: Array<Array<ArgData>>;
     getters: { [key: string]: GetterData };
     methods: { [key: string]: MethodData };

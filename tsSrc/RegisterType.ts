@@ -327,4 +327,57 @@ export function RegisterCustomize(){
         duk_error(ctx, DUK_ERR_TYPE_ERROR, "arguments value not match");
     }
     `
+
+    customize["Node_ScriptComponent"]=`
+    duk_ret_t js_Node_ScriptComponent(duk_context* ctx)
+{
+	if (duk_is_constructable(ctx, 0)
+		&& (duk_is_number(ctx, 1) || !duk_is_valid_index(ctx, 1))
+		&& (duk_is_number(ctx, 2) || !duk_is_valid_index(ctx, 2))
+		) {
+		if (duk_get_top(ctx) == 1) {
+			void* ptr = duk_get_heapptr(ctx, 0);
+			duk_push_this(ctx);
+			Node* native = js_to_native_object<Node>(ctx, -1);
+			duk_pop(ctx);
+			SharedPtr<JsComponent> com(new JsComponent(jsGetContext(ctx)));
+			auto ret =com->createInstance(ptr);
+			native->AddComponent(com,0, REPLICATED);
+			duk_push_heapptr(ctx,ret);
+			return 1;
+
+		}
+		else if (duk_get_top(ctx) == 2) {
+			void* ptr = duk_get_heapptr(ctx, 0);
+			CreateMode n1 = (CreateMode)duk_require_int(ctx, 1);
+			duk_push_this(ctx);
+			Node* native = js_to_native_object<Node>(ctx, -1);
+			duk_pop(ctx);
+			SharedPtr<JsComponent> com(new JsComponent(jsGetContext(ctx)));
+			auto ret =com->createInstance(ptr);
+			native->AddComponent(com, 0, n1);
+			duk_push_heapptr(ctx,ret);
+			return 1;
+
+		}
+		else if (duk_get_top(ctx) == 3) {
+			void* ptr = duk_get_heapptr(ctx, 0);
+			CreateMode n1 = (CreateMode)duk_require_int(ctx, 1);
+			unsigned n2 = duk_require_uint(ctx, 2);
+			duk_push_this(ctx);
+			Node* native = js_to_native_object<Node>(ctx, -1);
+			duk_pop(ctx);
+			SharedPtr<JsComponent> com(new JsComponent(jsGetContext(ctx)));
+			auto ret =com->createInstance(ptr);
+			native->AddComponent(com, n2, n1);
+			duk_push_heapptr(ctx,ret);
+			return 1;
+
+		}
+		else {
+			duk_error(ctx, DUK_ERR_TYPE_ERROR, "invalid argument value: 3");
+		}
+	}
+	duk_error(ctx, DUK_ERR_TYPE_ERROR, "arguments value not match");
+}`
 }

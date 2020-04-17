@@ -93,10 +93,12 @@ class JSBClass extends BindingData_1.BaseBindingData {
             let md = {
                 isStatic: isStatic,
                 name: name,
+                nativeName: name,
                 args: []
             };
             if (customizeName)
                 md.customize = customizeName;
+            JSBCustomize_1.JSBNativeName(md, met);
             if (met.parameters) {
                 for (let p of met.parameters) {
                     if (p.type) {

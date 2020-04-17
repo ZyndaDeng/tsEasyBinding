@@ -127,12 +127,12 @@ class ClassEmitter {
             }
             argsInside += ");";
             if (f.returnType) {
-                w.writeText("auto ret=" + nativeName + "::" + f.name + argsInside).newLine();
+                w.writeText("auto ret=" + nativeName + "::" + f.nativeName + argsInside).newLine();
                 w.writeText(f.returnType.setFunc()).newLine();
                 w.writeText("return 1;").newLine();
             }
             else {
-                w.writeText(nativeName + "::" + f.name + argsInside).newLine();
+                w.writeText(nativeName + "::" + f.nativeName + argsInside).newLine();
                 w.writeText("return 0;").newLine();
             }
         }
@@ -401,7 +401,7 @@ class ClassEmitter {
         if (f.returnType) {
             w.writeText("auto ret=");
         }
-        w.writeText("native->" + f.name + "(");
+        w.writeText("native->" + f.nativeName + "(");
         let next = "";
         let argCount = args.length;
         for (let i = 0; i < argCount; i++) {

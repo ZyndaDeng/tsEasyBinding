@@ -95,9 +95,11 @@ class ClassEmitter {
         this.buildNativeCtor(w);
         w.newLine();
         w.writeText("duk_push_heapptr(ctx,ptr);//[this]").newLine();
-        w.writeText("AddObject(ptr,native);").newLine();
+        w.writeText("AddObject(ctx,ptr,native,isWeak);").newLine();
+        w.writeText("if(!isWeak)").writeLeftBracket().newLine();
         w.writeText("duk_push_c_function(ctx, default_finalizer, DUK_VARARGS);").newLine();
         w.writeText("duk_set_finalizer(ctx,-2);").newLine();
+        w.writeRightBracket().newLine();
         w.writeText("duk_pop(ctx);//[]").newLine();
         w.writeText("return 0;").newLine();
         w.writeRightBracket().newLine().newLine();
@@ -125,12 +127,12 @@ class ClassEmitter {
             }
             argsInside += ");";
             if (f.returnType) {
-                w.writeText("auto ret=" + nativeName + "::" + f.name + argsInside).newLine();
+                w.writeText("auto ret=" + nativeName + "::" + f.nativeName + argsInside).newLine();
                 w.writeText(f.returnType.setFunc()).newLine();
                 w.writeText("return 1;").newLine();
             }
             else {
-                w.writeText(nativeName + "::" + f.name + argsInside).newLine();
+                w.writeText(nativeName + "::" + f.nativeName + argsInside).newLine();
                 w.writeText("return 0;").newLine();
             }
         }
@@ -292,13 +294,19 @@ class ClassEmitter {
      */
     buildNativeCtor(w) {
         let nativeName = this.data.nativeName;
+        w.writeText("bool isWeak=false;").newLine();
         w.writeText(nativeName + "* native=nullptr;").newLine();
         w.writeText("duk_push_heap_stash(ctx);//[stash]").newLine();
         w.writeText("duk_get_prop_string(ctx,-1,jsNewObjWithNative);//[stash,pointer]").newLine();
         w.writeText("if(duk_is_pointer(ctx,-1))").writeLeftBracket().newLine();
         w.writeText("native=(" + nativeName + " *)duk_get_pointer(ctx,-1);").newLine();
-        w.writeText("duk_push_nan(ctx);//[this ,stash,pointer,nan]").newLine();
+        w.writeText("duk_get_prop_string(ctx,-2,jsIsWeakObj);//[stash,pointer,isWeak]").newLine();
+        w.writeText("isWeak=duk_to_boolean(ctx,-1);").newLine();
+        w.writeText("duk_pop(ctx);//[stash,pointer]").newLine();
+        w.writeText("duk_push_nan(ctx);//[stash,pointer,nan]").newLine();
         w.writeText("duk_put_prop_string(ctx,-3,jsNewObjWithNative);//[stash,pointer]").newLine();
+        w.writeText("duk_push_nan(ctx);//[stash,pointer,nan]").newLine();
+        w.writeText("duk_put_prop_string(ctx,-3,jsIsWeakObj);//[stash,pointer]").newLine();
         w.writeText("duk_pop_2(ctx);//[]").newLine();
         w.writeRightBracket().writeText("else").writeLeftBracket().newLine();
         w.writeText("duk_pop_2(ctx);//[]").newLine();
@@ -393,7 +401,7 @@ class ClassEmitter {
         if (f.returnType) {
             w.writeText("auto ret=");
         }
-        w.writeText("native->" + f.name + "(");
+        w.writeText("native->" + f.nativeName + "(");
         let next = "";
         let argCount = args.length;
         for (let i = 0; i < argCount; i++) {

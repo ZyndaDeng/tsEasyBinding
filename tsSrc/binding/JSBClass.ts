@@ -6,6 +6,7 @@ import { JSBCustomize, JSBRefArgs, JSBNativeName } from "./JSBCustomize";
 export interface MethodData {
     isStatic: boolean;
     name: string;
+    nativeName:string;
     returnType?: ArgData;
     args: ArgData[];
     othersArgs?: Array<Array<ArgData>>;
@@ -102,9 +103,11 @@ export class JSBClass extends BaseBindingData {
             let md: MethodData = {
                 isStatic: isStatic,
                 name: name,
+                nativeName:name,
                 args: []
             }
             if(customizeName)md.customize=customizeName;
+            JSBNativeName(md,met);
             if (met.parameters) {
                 for (let p of met.parameters) {
                     if (p.type) {

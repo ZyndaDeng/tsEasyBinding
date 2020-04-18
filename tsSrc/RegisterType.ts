@@ -155,6 +155,7 @@ export function RegisterType() {
     registerArgs["Ray"] = DefaultTypeArg
     registerArgs["Polyhedron"] = DefaultTypeArg
     registerArgs["Sphere"] = DefaultTypeArg
+    registerArgs["Controls"] = DefaultTypeArg
     //registerArgs["Model"] = DefaultTypeArg
 
     class StringVectorArg extends ArgDataBase {

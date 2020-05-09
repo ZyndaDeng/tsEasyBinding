@@ -9,8 +9,8 @@ export function RegisterType() {
             super(p, def);
             this.type = "String";
         }
-        getFunc(idx: number): string {
-            return "String n" + idx + "= duk_require_string(ctx, " + idx + ");"
+        getFunc(val:string,idx: number): string {
+            return "String n" + idx + "= JS_ToCString(ctx, " + val + ");"
         }
         setFunc(): string {
             return "js_push_urho3d_string(ctx,ret);"
@@ -29,116 +29,116 @@ export function RegisterType() {
     }
     registerArgs["StringHash"] = StringHashArg
 
-    class Vector2Arg extends ArgDataBase {
-        constructor(p: ts.TypeNode, def?: boolean) {
-            super(p, def);
-            this.type = "Vector2";
-        }
-        checkFunc(idx: number): string {
-            return "duk_is_object(ctx," + idx + ")";
-        }
-        getFunc(idx: number): string {
-            return "Vector2 n" + idx + "= js_to_Vector2(ctx, " + idx + ");"
-        }
-        setFunc(): string {
-            return "js_push_Vector2(ctx,ret);"
-        }
-    }
-    registerArgs["Vector2"] = Vector2Arg
-    registerArgs["Vector2Like"] = Vector2Arg
+    // class Vector2Arg extends ArgDataBase {
+    //     constructor(p: ts.TypeNode, def?: boolean) {
+    //         super(p, def);
+    //         this.type = "Vector2";
+    //     }
+    //     checkFunc(idx: number): string {
+    //         return "duk_is_object(ctx," + idx + ")";
+    //     }
+    //     getFunc(val:string,idx: number): string {
+    //         return "Vector2 n" + idx + "= js_to_Vector2(ctx, " + idx + ");"
+    //     }
+    //     setFunc(): string {
+    //         return "js_push_Vector2(ctx,ret);"
+    //     }
+    // }
+    registerArgs["Vector2"] = DefaultTypeArg
+    registerArgs["Vector2Like"] = DefaultTypeArg
 
     registerArgs["IntVector2"] = DefaultTypeArg
 
-    class Vector3Arg extends ArgDataBase {
-        constructor(p: ts.TypeNode, def?: boolean) {
-            super(p, def);
-            this.type = "Vector3";
-        }
-        checkFunc(idx: number): string {
-            return "duk_is_object(ctx," + idx + ")";
-        }
-        getFunc(idx: number): string {
-            return "Vector3 n" + idx + "= js_to_Vector3(ctx, " + idx + ");"
-        }
-        setFunc(): string {
-            return "js_push_Vector3(ctx,ret);"
-        }
-    }
-    registerArgs["Vector3"] = Vector3Arg
-    registerArgs["Vector3Like"] = Vector3Arg
+    // class Vector3Arg extends ArgDataBase {
+    //     constructor(p: ts.TypeNode, def?: boolean) {
+    //         super(p, def);
+    //         this.type = "Vector3";
+    //     }
+    //     checkFunc(idx: number): string {
+    //         return "duk_is_object(ctx," + idx + ")";
+    //     }
+    //     getFunc(val:string,idx: number): string {
+    //         return "Vector3 n" + idx + "= js_to_Vector3(ctx, " + idx + ");"
+    //     }
+    //     setFunc(): string {
+    //         return "js_push_Vector3(ctx,ret);"
+    //     }
+    // }
+    registerArgs["Vector3"] = DefaultTypeArg
+    //registerArgs["Vector3Like"] = Vector3Arg
 
     registerArgs["IntVector3"] = DefaultTypeArg
 
-    class Vector4Arg extends ArgDataBase {
-        constructor(p: ts.TypeNode, def?: boolean) {
-            super(p, def);
-            this.type = "Vector4";
-        }
-        checkFunc(idx: number): string {
-            return "duk_is_object(ctx," + idx + ")";
-        }
-        getFunc(idx: number): string {
-            return "Vector4 n" + idx + "= js_to_Vector4(ctx, " + idx + ");"
-        }
-        setFunc(): string {
-            return "js_push_Vector4(ctx,ret);"
-        }
-    }
-    registerArgs["Vector4"] = Vector4Arg
-    registerArgs["Vector4Like"] = Vector4Arg
+    // class Vector4Arg extends ArgDataBase {
+    //     constructor(p: ts.TypeNode, def?: boolean) {
+    //         super(p, def);
+    //         this.type = "Vector4";
+    //     }
+    //     checkFunc(idx: number): string {
+    //         return "duk_is_object(ctx," + idx + ")";
+    //     }
+    //     getFunc(idx: number): string {
+    //         return "Vector4 n" + idx + "= js_to_Vector4(ctx, " + idx + ");"
+    //     }
+    //     setFunc(): string {
+    //         return "js_push_Vector4(ctx,ret);"
+    //     }
+    // }
+    registerArgs["Vector4"] = DefaultTypeArg
+    //registerArgs["Vector4Like"] = DefaultTypeArg
 
-    class PackageEntryArg extends ArgDataBase {
-        constructor(p: ts.TypeNode, def?: boolean) {
-            super(p, def);
-            this.type = "PackageEntry";
-        }
-        checkFunc(idx: number): string {
-            return "duk_is_object(ctx," + idx + ")";
-        }
-        getFunc(idx: number): string {
-            throw new Error("no defined");
-        }
-        setFunc(): string {
-            return "js_push_PackageEntry(ctx,ret);"
-        }
-    }
-    registerArgs["PackageEntry"] = PackageEntryArg
+    // class PackageEntryArg extends ArgDataBase {
+    //     constructor(p: ts.TypeNode, def?: boolean) {
+    //         super(p, def);
+    //         this.type = "PackageEntry";
+    //     }
+    //     checkFunc(idx: number): string {
+    //         return "duk_is_object(ctx," + idx + ")";
+    //     }
+    //     getFunc(idx: number): string {
+    //         throw new Error("no defined");
+    //     }
+    //     setFunc(): string {
+    //         return "js_push_PackageEntry(ctx,ret);"
+    //     }
+    // }
+    registerArgs["PackageEntry"] = DefaultTypeArg
 
-    class ColorArg extends ArgDataBase {
-        constructor(p: ts.TypeNode, def?: boolean) {
-            super(p, def);
-            this.type = "Color";
-        }
-        checkFunc(idx: number): string {
-            return "duk_is_object(ctx," + idx + ")";
-        }
-        getFunc(idx: number): string {
-            return "Color n" + idx + "= js_to_Color(ctx, " + idx + ");"
-        }
-        setFunc(): string {
-            return "js_push_Color(ctx,ret);"
-        }
-    }
-    registerArgs["Color"] = ColorArg
-    registerArgs["ColorLike"] = ColorArg
+    // class ColorArg extends ArgDataBase {
+    //     constructor(p: ts.TypeNode, def?: boolean) {
+    //         super(p, def);
+    //         this.type = "Color";
+    //     }
+    //     checkFunc(idx: number): string {
+    //         return "duk_is_object(ctx," + idx + ")";
+    //     }
+    //     getFunc(idx: number): string {
+    //         return "Color n" + idx + "= js_to_Color(ctx, " + idx + ");"
+    //     }
+    //     setFunc(): string {
+    //         return "js_push_Color(ctx,ret);"
+    //     }
+    // }
+    registerArgs["Color"] = DefaultTypeArg
+    //registerArgs["ColorLike"] = ColorArg
 
-    class RectArg extends ArgDataBase {
-        constructor(p: ts.TypeNode, def?: boolean) {
-            super(p, def);
-            this.type = "Rect";
-        }
-        checkFunc(idx: number): string {
-            return "duk_is_object(ctx," + idx + ")";
-        }
-        getFunc(idx: number): string {
-            return "Rect n" + idx + "= js_to_Rect(ctx, " + idx + ");"
-        }
-        setFunc(): string {
-            return "js_push_Rect(ctx,ret);"
-        }
-    }
-    registerArgs["Rect"] = RectArg
-    registerArgs["RectLike"] = RectArg
+    // class RectArg extends ArgDataBase {
+    //     constructor(p: ts.TypeNode, def?: boolean) {
+    //         super(p, def);
+    //         this.type = "Rect";
+    //     }
+    //     checkFunc(idx: number): string {
+    //         return "duk_is_object(ctx," + idx + ")";
+    //     }
+    //     getFunc(idx: number): string {
+    //         return "Rect n" + idx + "= js_to_Rect(ctx, " + idx + ");"
+    //     }
+    //     setFunc(): string {
+    //         return "js_push_Rect(ctx,ret);"
+    //     }
+    // }
+    registerArgs["Rect"] = DefaultTypeArg
+    //registerArgs["RectLike"] = RectArg
 
     
     registerArgs["IntRect"] = DefaultTypeArg
@@ -163,11 +163,11 @@ export function RegisterType() {
             super(p, def);
             this.type = "StringVector";
         }
-        checkFunc(idx: number): string {
-            return "duk_is_array(ctx," + idx + ")";
+        checkFunc(val: string): string {
+            return "JS_IsArray(ctx," + val + ")";
         }
-        getFunc(idx: number): string {
-                return "StringVector n"+idx+"; js_to_normal_array(ctx,"+idx+",n"+idx+",duk_to_string);"
+        getFunc(val: string,idx:number): string {
+            return "StringVector n"+idx+"; js_to_normal_array(ctx,"+val+",n"+idx+",JS_ToCString);"
         }
         setFunc(): string {
                 return "js_push_StringVector(ctx,ret);"    
@@ -180,12 +180,12 @@ export function RegisterType() {
             super(p, def);
             this.type = "Variant";
         }
-        checkFunc(idx: number): string {
-            return "!duk_is_null_or_undefined(ctx," + idx + ")";
+        checkFunc(val: string): string {
+            return "!JS_IsUndefined(" + val + ")";
         }
-        getFunc(idx: number): string {
+        getFunc(val: string,idx: number): string {
 
-            return "Variant n" + idx + "; js_to_Variant(ctx, " + idx + ",n" + idx + ");"
+            return "Variant n" + idx + "; js_to_Variant(ctx, " + val + ",n" + idx + ");"
 
         }
         setFunc(): string {
@@ -199,13 +199,11 @@ export function RegisterType() {
             super(p, def);
             this.type = "VariantMap";
         }
-        checkFunc(idx: number): string {
-            return "duk_is_object(ctx," + idx + ")";
+        checkFunc(val: string): string {
+            return "js_is_native(ctx," + val + ",js_"+ this.type+"_id)";
         }
-        getFunc(idx: number): string {
-
-            return "VariantMap n" + idx + "; js_object_to_VariantMap(ctx, " + idx + ",n" + idx + ");"
-
+        getFunc(val: string,idx: number): string {
+            return "VariantMap n" + idx + "; js_object_to_VariantMap(ctx, " + val + ",n" + idx + ");"
         }
         setFunc(): string {
             return "js_push_VariantMap(ctx,ret);"
@@ -218,15 +216,15 @@ export function RegisterType() {
             super(p, def);
             this.type = "Component";
         }
-        checkFunc(idx: number): string {
-            return "js_is_native(ctx," + idx + ",\""+ this.type+"\")";
+        checkFunc(val: string): string {
+            return "js_is_native(ctx," + val + ","+ this.type+"::GetTypeInfoStatic()->bindingId)";
         }
-        getFunc(idx: number): string {
-       
-            return this.type + "* n" + idx + "=js_to_native_object<" + this.type + ">(ctx," + idx + ");"
+        getFunc(val: string,idx:number): string {
+           
+            return this.type + "* n" + idx + "=js_to_native_object<" + this.type + ">(ctx," + val + ");"
         }
         setFunc(): string {
-            return `if(ret)js_push_native_object(ctx,ret,ret->GetTypeName());else duk_push_undefined(ctx);`
+            return `js_push_native_object(ctx,ret,` + this.type + `::GetTypeInfoStatic()->bindingId);`
         }
     }
     registerArgs["ComponentMap[K]"] = ComponentMapArg
@@ -238,15 +236,15 @@ export function RegisterType() {
             super(p, def);
             this.type = "UIElement";
         }
-        checkFunc(idx: number): string {
-            return "js_is_native(ctx," + idx + ",\""+ this.type+"\")";
+        checkFunc(val: string): string {
+            return "js_is_native(ctx," + val + ","+ this.type+"::GetTypeInfoStatic()->bindingId)";
         }
-        getFunc(idx: number): string {
-       
-            return this.type + "* n" + idx + "=js_to_native_object<" + this.type + ">(ctx," + idx + ");"
+        getFunc(val: string,idx:number): string {
+           
+            return this.type + "* n" + idx + "=js_to_native_object<" + this.type + ">(ctx," + val + ");"
         }
         setFunc(): string {
-            return `if(ret)js_push_native_object(ctx,ret,ret->GetTypeName());else duk_push_undefined(ctx);`
+            return `js_push_native_object(ctx,ret,` + this.type + `::GetTypeInfoStatic()->bindingId);`
         }
     }
     registerArgs["UIElementMap[K]"] = UIElementMapArg
@@ -257,13 +255,11 @@ export function RegisterType() {
             super(p, def);
             this.type = "TouchState";
         }
-        checkFunc(idx: number): string {
-            return "duk_is_object(ctx," + idx + ")";
+        checkFunc(val: string): string {
+            return "JS_IsObject(" + val + ")";
         }
-        getFunc(idx: number): string {
-
+        getFunc(val: string,idx:number): string {
            throw new Error("not defined");
-
         }
         setFunc(): string {
             return "js_push_TouchState(ctx,ret);"
@@ -274,12 +270,12 @@ export function RegisterType() {
     class ILogicComponentArg extends ArgDataBase {
         constructor(p: ts.TypeNode, def?: boolean) {
             super(p, def);
-            this.type = "TouchState";
+            this.type = "LogicComponent";
         }
-        checkFunc(idx: number): string {
-            return "duk_is_object(ctx," + idx + ")";
+        checkFunc(val: string): string {
+            return "JS_IsObject(" + val + ")";
         }
-        getFunc(idx: number): string {
+        getFunc(val: string,idx: number): string {
 
             return "SharedPtr< JsDelegate> n"+idx+"(new JsDelegate(jsGetContext(ctx)));void* ptrArg = duk_get_heapptr(ctx, "+idx+");NativeRetainJs(ctx, ptrArg, n"+idx+");"
 

@@ -7,8 +7,8 @@ export interface ArgData {
     ignore?: boolean;
     /**是否引用类型 */
     ref?:boolean;
-    checkFunc(idx: number): string;
-    getFunc(idx: number): string;
+    checkFunc(val: string): string;
+    getFunc(val: string,idx:number): string;
     setFunc(): string;
 }
 
@@ -18,14 +18,14 @@ export class ArgDataBase implements ArgData {
     type: string;
     ignore?: boolean;
     ref?:boolean;
-    checkFunc(idx: number): string {
-        return "duk_is_string(ctx," + idx + ")";
+    checkFunc(val: string): string {
+        return "JS_IsString(" + val + ")";
     }
-    getFunc(idx: number): string {
-        return "const char* n" + idx + "= duk_require_string(ctx, " + idx + ");"
+    getFunc(val: string,idx:number): string {
+        return "const char* n" + idx + "= JS_ToCString(ctx," + val + ");"
     }
     setFunc(): string {
-        return "duk_push_string(ctx,ret);"
+        return "JS_NewString(ctx,ret);"
     }
     constructor(p: ts.TypeNode, ignore?: boolean) {
         this.type = "string";
@@ -46,14 +46,14 @@ export class IntArg extends ArgDataBase {
         super(p, def);
         this.type = "int";
     }
-    checkFunc(idx: number): string {
-        return "duk_is_number(ctx," + idx + ")";
+    checkFunc(val: string): string {
+        return "JS_IsInteger(" + val + ")";
     }
-    getFunc(idx: number): string {
-        return "int n" + idx + "= duk_require_int(ctx, " + idx + ");"
+    getFunc(val: string,idx:number): string {
+        return "int n" + idx + "= JS_VALUE_GET_INT(" + val + ");"
     }
     setFunc(): string {
-        return "duk_push_int(ctx,ret);"
+        return "JS_NewInt32(ctx,ret);"
     }
 }
 
@@ -62,16 +62,14 @@ export class EnumArg extends ArgDataBase {
         super(p, def);
         this.type = "int";
     }
-    checkFunc(idx: number): string {
-        return "duk_is_number(ctx," + idx + ")";
+    checkFunc(val: string): string {
+        return "JS_IsInteger(" + val + ")";
     }
-    getFunc(idx: number): string {
-
-        return this.enumName + " n" + idx + "=(" + this.enumName + ") duk_require_int(ctx, " + idx + ");"
-
+    getFunc(val: string,idx:number): string {
+        return this.enumName + " n" + idx + "=(" + this.enumName + ") JS_VALUE_GET_INT(" + val + ");"
     }
     setFunc(): string {
-        return "duk_push_int(ctx,ret);"
+        return "JS_NewInt32(ctx,ret);"
     }
 }
 
@@ -80,14 +78,14 @@ export class UIntArg extends ArgDataBase {
         super(p, def);
         this.type = "uint";
     }
-    checkFunc(idx: number): string {
-        return "duk_is_number(ctx," + idx + ")";
+    checkFunc(val: string): string {
+        return "JS_IsInteger(" + val + ")";
     }
-    getFunc(idx: number): string {
-        return "unsigned n" + idx + "= duk_require_uint(ctx, " + idx + ");"
+    getFunc(val: string,idx:number): string {
+        return "unsigned n" + idx + "= (unsigned)JS_VALUE_GET_INT(" + val + ");"
     }
     setFunc(): string {
-        return "duk_push_uint(ctx,ret);"
+        return "JS_NewInt32(ctx,ret);"
     }
 }
 
@@ -96,14 +94,14 @@ export class NumberArg extends ArgDataBase {
         super(p, def);
         this.type = "number";
     }
-    checkFunc(idx: number): string {
-        return "duk_is_number(ctx," + idx + ")";
+    checkFunc(val: string): string {
+        return "JS_IsNumber(" + val + ")";
     }
-    getFunc(idx: number): string {
-        return "duk_double_t  n" + idx + "= duk_require_number(ctx, " + idx + ");"
+    getFunc(val: string,idx:number): string {
+        return "double  n" + idx + "= JS_VALUE_GET_FLOAT64(" + val + ");"
     }
     setFunc(): string {
-        return "duk_push_number(ctx,ret);"
+        return "JS_NewFloat64(ctx,ret);"
     }
 }
 
@@ -112,14 +110,14 @@ export class BoolArg extends ArgDataBase {
         super(p, def);
         this.type = "bool";
     }
-    checkFunc(idx: number): string {
-        return "duk_is_boolean(ctx," + idx + ")";
+    checkFunc(val: string): string {
+        return "JS_IsBool(" + val + ")";
     }
-    getFunc(idx: number): string {
-        return "bool n" + idx + "= duk_require_boolean(ctx, " + idx + ") ? true : false;"
+    getFunc(val: string,idx:number): string {
+        return "bool n" + idx + "= JS_VALUE_GET_BOOL(" + val + ") ? true : false;"
     }
     setFunc(): string {
-        return "duk_push_boolean(ctx,ret?1:0);"
+        return "JS_NewBool(ctx,ret?1:0);"
     }
 }
 
@@ -128,18 +126,18 @@ export class ArrayArg extends ArgDataBase {
         super(p, def);
         this.type = "Array";
     }
-    checkFunc(idx: number): string {
-        return "duk_is_array(ctx," + idx + ")";
+    checkFunc(val: string): string {
+        return "JS_IsArray(ctx," + val + ")";
     }
-    getFunc(idx: number): string {
+    getFunc(val: string,idx:number): string {
         if(this.typeName=="String"||this.typeName=="string"){
-            return "StringVector n"+idx+"; js_to_normal_array(ctx,"+idx+",n"+idx+",duk_to_string);"
+            return "StringVector n"+idx+"; js_to_normal_array(ctx,"+val+",n"+idx+",JS_ToCString);"
         }else if(this.typeName=="Variant"){
-            return "VariantVector n"+idx+"; js_to_VariantVector(ctx,"+idx+",n"+idx+");"
+            return "VariantVector n"+idx+"; js_to_VariantVector(ctx,"+val+",n"+idx+");"
         }else if(this.typeName=="number"){
-            return "Vector<float> n"+idx+"; js_to_normal_array(ctx,"+idx+",n"+idx+",duk_to_number);"
+            return "Vector<float> n"+idx+"; js_to_normal_array(ctx,"+val+",n"+idx+",js_to_number);"
         }else{
-            return "PODVector<"+this.typeName+"*> n"+idx+"; js_to_native_array(ctx,"+idx+",n"+idx+");"
+            return "PODVector<"+this.typeName+"*> n"+idx+"; js_to_native_array(ctx,"+val+",n"+idx+");"
         }
        
         //return "Vector2 n" + idx + "= js_to_vector2(ctx, " + idx + ");"
@@ -161,11 +159,11 @@ export class DefaultTypeArg extends ArgDataBase{
         super(p, def);
         this.type = p.getText();
     }
-    checkFunc(idx: number): string {
-        return "duk_is_object(ctx," + idx + ")";
+    checkFunc(val: string): string {
+        return "js_is_native(ctx," + val + ",js_"+ this.type+"_id)";
     }
-    getFunc(idx: number): string {
-        return this.type+" n" + idx + "= js_to_"+this.type+"(ctx, " + idx + ");"
+    getFunc(val: string,idx:number): string {
+        return this.type+" n" + idx + "= js_to_"+this.type+"(ctx, " + val + ");"
     }
     setFunc(): string {
         return "js_push_"+this.type+"(ctx,ret);"
@@ -179,15 +177,15 @@ export class NativeArg extends ArgDataBase {
         super(p, def);
         this.type = p.getText();
     }
-    checkFunc(idx: number): string {
-        return "js_is_native(ctx," + idx + ",\""+ this.type+"\")";
+    checkFunc(val: string): string {
+        return "js_is_native(ctx," + val + ","+ this.type+"::GetTypeInfoStatic()->bindingId)";
     }
-    getFunc(idx: number): string {
+    getFunc(val: string,idx:number): string {
        
-        return this.type + "* n" + idx + "=js_to_native_object<" + this.type + ">(ctx," + idx + ");"
+        return this.type + "* n" + idx + "=js_to_native_object<" + this.type + ">(ctx," + val + ");"
     }
     setFunc(): string {
-        return `js_push_native_object(ctx,ret,"` + this.type + `");`
+        return `js_push_native_object(ctx,ret,` + this.type + `::GetTypeInfoStatic()->bindingId);`
     }
 }
 

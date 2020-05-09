@@ -130,7 +130,7 @@ class SysEmitter {
                 e.emitDefine();
             }
             writter.newLine();
-            writter.writeText("void " + this.packageName(a) + "(duk_context* ctx)").writeLeftBracket().newLine();
+            writter.writeText("void " + this.packageName(a) + "(const jsb::Context& ctx)").writeLeftBracket().newLine();
             for (let e of emitters) {
                 e.emitBinding();
             }

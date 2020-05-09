@@ -7,13 +7,13 @@ class FuncEmitter {
     }
     emitDefine() {
         let w = this.w;
-        w.writeText("duk_ret_t " + this.name() + "(duk_context *ctx)").writeLeftBracket().newLine();
+        w.writeText("JSValue " + this.name() + "(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv)").writeLeftBracket().newLine();
         let next = "";
         if (this.data.args.length > 0) {
             w.writeText("if(").newLine();
             for (let i = 0; i < this.data.args.length; i++) {
                 let a = this.data.args[i];
-                w.writeText(next + a.checkFunc(i)).newLine();
+                w.writeText(next + a.checkFunc("argv[" + i + "]")).newLine();
                 next = "&&";
             }
             w.writeText(")").writeLeftBracket().newLine();
@@ -22,19 +22,18 @@ class FuncEmitter {
         next = "";
         for (let i = 0; i < this.data.args.length; i++) {
             let a = this.data.args[i];
-            w.writeText(a.getFunc(i)).newLine();
+            w.writeText(a.getFunc("argv[" + i + "]", i)).newLine();
             argsInside += next + "n" + i;
             next = ",";
         }
         argsInside += ")";
         if (this.data.returnType) {
             w.writeText("auto ret=" + this.data.name + argsInside + ";").newLine();
-            w.writeText(this.data.returnType.setFunc()).newLine();
-            w.writeText("return 1;");
+            w.writeText("return ").writeText(this.data.returnType.setFunc()).newLine();
         }
         else {
             w.writeText(this.data.name + argsInside + ";").newLine();
-            w.writeText("return 0;");
+            w.writeText("return JS_UNDEFINED;");
         }
         if (this.data.args.length > 0) {
             w.newLine().writeRightBracket().newLine();
@@ -45,15 +44,13 @@ class FuncEmitter {
         w.writeRightBracket().newLine().newLine();
     }
     emitBinding() {
-        this.w.writeText("jsb_func(ctx,\"" + this.data.name + "\"," + this.name() + "," + this.data.args.length + ");");
+        //this.w.writeText("ctx.newFunc(" + this.name() + ",\"" + this.data.name + "\");");
     }
     name() {
         return "js_func_" + this.data.name;
     }
-    register() {
-        if (this.data)
-            return "jsInitFunc(ctx,\"" + this.data.name + "\"," + this.name() + "," + this.data.args.length + ");";
-        throw new Error("data undfined");
+    setExport(exp) {
+        exp.export(this.data.name, "ctx.newFunc(" + this.name() + ",\"" + this.data.name + "\")");
     }
 }
 exports.FuncEmitter = FuncEmitter;

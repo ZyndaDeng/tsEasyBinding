@@ -24,7 +24,10 @@ class ClassEmitter {
         this.w.newLine();
     }
     emitBinding() {
-        this.w.writeText(this.apiName() + "(ctx);");
+        //this.w.writeText(this.apiName()+"(ctx);");
+    }
+    setExport(exp) {
+        exp.export(this.data.name, this.apiName() + "(ctx)");
     }
     apiName() {
         return "jsapi_init_" + this.data.name;
@@ -33,8 +36,7 @@ class ClassEmitter {
      * 创建对象的绑定主函数
      */
     buildMain(w) {
-        w.writeText("void " + this.apiName() + "(duk_context* ctx)").newLine().writeLeftBracket().newLine();
-        w.writeText("duk_function_list_entry functions[] = ").newLine().writeLeftBracket().newLine();
+        w.writeText("jsb::Value " + this.apiName() + "(const jsb::Context& ctx)").newLine().writeLeftBracket().newLine();
         let funcs = new Array();
         let staticFuncs = new Array();
         for (let k in this.data.methods) {
@@ -46,36 +48,36 @@ class ClassEmitter {
                 funcs.push(f);
             }
         }
-        for (let f of funcs) {
-            w.writeText("{\"" + f.name + "\"," + this.functionName(f) + ",DUK_VARARGS},").newLine();
+        if (funcs.length > 0 || this.data.getters) {
+            w.writeText("static const JSCFunctionListEntry functions[] = ").newLine().writeLeftBracket().newLine();
+            for (let f of funcs) {
+                w.writeText("JSB_CFUNC_DEF(\"" + f.name + "\", 0," + this.functionName(f) + "),").newLine();
+            }
+            if (this.data.getters) {
+                for (let k in this.data.getters) {
+                    let g = this.data.getters[k];
+                    w.writeText("JSB_CGETSET_DEF(\"" + g.name + "\"," + this.getterName(g, true) + "," + this.getterName(g, false) + "),").newLine();
+                }
+            }
+            w.writeRightBracket().writeText(";").newLine();
         }
-        w.writeText("{NULL,NULL}").newLine();
-        w.writeRightBracket().writeText(";").newLine();
         if (staticFuncs.length > 0) {
-            w.writeText("duk_function_list_entry staticFuncs[] = ").newLine().writeLeftBracket().newLine();
+            w.writeText("static const JSCFunctionListEntry staticFuncs[] = ").newLine().writeLeftBracket().newLine();
             for (let f of staticFuncs) {
-                w.writeText("{\"" + f.name + "\"," + this.functionName(f) + ",DUK_VARARGS},").newLine();
+                w.writeText("JSB_CFUNC_DEF(\"" + f.name + "\", 0," + this.functionName(f) + "),").newLine();
             }
-            w.writeText("{NULL,NULL}").newLine();
             w.writeRightBracket().writeText(";").newLine();
         }
         else {
-            w.writeText("duk_function_list_entry staticFuncs[] = {{NULL,NULL}};").newLine();
+            //w.writeText("duk_function_list_entry staticFuncs[] = {{NULL,NULL}};").newLine();
         }
-        if (this.data.getters) {
-            w.writeText("js_property props[]= ").newLine();
-            w.writeLeftBracket().newLine();
-            for (let k in this.data.getters) {
-                let g = this.data.getters[k];
-                w.writeText("{\"" + g.name + "\"," + this.getterName(g, true) + "," + this.getterName(g, false) + "},").newLine();
-            }
-            w.writeText("{NULL,NULL,NULL}").newLine();
-            w.writeRightBracket().writeText(";").newLine();
+        let extendId = "0";
+        if (this.data.extend.length > 0) {
+            extendId = this.data.extend + "::GetTypeInfoStatic()->bindingId";
         }
-        else {
-            w.writeText("js_property props[]={{NULL,NULL}};").newLine();
-        }
-        w.writeText("jsb_Class(ctx,\"" + this.data.name + "\",\"" + this.data.extend + "\"," + this.ctorName() + ",functions,staticFuncs,props);").newLine();
+        let finalizer = "default_finalizer";
+        w.writeText("jsb::JSBClass c(ctx,&(" + this.classId() + "),\"" + this.data.name + "\"," + this.ctorName() + "," + finalizer + "," + extendId + ");").newLine();
+        w.writeText("return c.ctor;").newLine();
         w.writeRightBracket().newLine();
     }
     /**
@@ -83,25 +85,16 @@ class ClassEmitter {
      */
     buildCtor() {
         let w = this.w;
-        w.writeText("duk_ret_t " + this.ctorName() + "(duk_context *ctx)").newLine();
+        w.writeText("JSValue " + this.ctorName() + "(JSContext* ctx, JSValueConst this_val,int argc, JSValueConst* argv)").newLine();
         w.writeLeftBracket().newLine();
-        w.writeText("if (!duk_is_constructor_call(ctx))").writeLeftBracket().newLine();
-        w.writeText("return DUK_RET_TYPE_ERROR;").newLine();
-        w.writeRightBracket().newLine().newLine();
-        w.writeText("int top=duk_get_top(ctx);").newLine();
-        w.writeText("duk_push_this(ctx);//[this]").newLine();
-        w.writeText("void *ptr = duk_get_heapptr(ctx, -1);").newLine().newLine();
-        w.writeText("duk_pop(ctx);//[]").newLine();
         this.buildNativeCtor(w);
         w.newLine();
-        w.writeText("duk_push_heapptr(ctx,ptr);//[this]").newLine();
-        w.writeText("AddObject(ctx,ptr,native,isWeak);").newLine();
-        w.writeText("if(!isWeak)").writeLeftBracket().newLine();
-        w.writeText("duk_push_c_function(ctx, default_finalizer, DUK_VARARGS);").newLine();
-        w.writeText("duk_set_finalizer(ctx,-2);").newLine();
+        w.writeText("if(native)").writeLeftBracket().newLine();
+        w.writeText("JSValue ret = JS_NewObjectClass(ctx, " + this.classId() + ");").newLine();
+        w.writeText("Add_Object(ret,native);").newLine();
+        w.writeText("return ret;").newLine();
         w.writeRightBracket().newLine();
-        w.writeText("duk_pop(ctx);//[]").newLine();
-        w.writeText("return 0;").newLine();
+        w.writeText("return JS_UNDEFINED;").newLine();
         w.writeRightBracket().newLine().newLine();
     }
     /**
@@ -128,25 +121,21 @@ class ClassEmitter {
             argsInside += ");";
             if (f.returnType) {
                 w.writeText("auto ret=" + nativeName + "::" + f.nativeName + argsInside).newLine();
-                w.writeText(f.returnType.setFunc()).newLine();
-                w.writeText("return 1;").newLine();
+                w.writeText("return ").writeText(f.returnType.setFunc()).newLine();
             }
             else {
                 w.writeText(nativeName + "::" + f.nativeName + argsInside).newLine();
-                w.writeText("return 0;").newLine();
+                w.writeText("return JS_UNDEFINED;").newLine();
             }
         }
         else {
-            w.writeText("duk_push_this(ctx);").newLine();
-            w.writeText(nativeName + "* native=js_to_native_object<" + nativeName + ">(ctx,-1);").newLine();
-            w.writeText("duk_pop(ctx);").newLine();
+            w.writeText(nativeName + "* native=js_to_native_object<" + nativeName + ">(ctx,this_val);").newLine();
             this.buildNativeFunc(w, f, args);
             w.newLine();
         }
     }
     /**创建带特定函数的条件语句 */
     buildFuncWithArgs(w, f, args) {
-        //判断函数类型条件语句
         w.writeText("if(");
         let next = "";
         let minCount = args.length; //最少参数个数
@@ -167,7 +156,7 @@ class ClassEmitter {
             }
         }
         else {
-            w.writeText("duk_get_top(ctx)==0");
+            w.writeText("argc==0");
         }
         w.writeText(")").writeLeftBracket().newLine();
         let nextFunc = () => {
@@ -176,7 +165,7 @@ class ClassEmitter {
         //判断函数个数条件语句
         for (let i = minCount; i <= args.length; i++) {
             nextFunc();
-            w.writeText("duk_get_top(ctx)==" + i + ")").writeLeftBracket().newLine();
+            w.writeText("argc==" + i + ")").writeLeftBracket().newLine();
             for (let j = 0; j < i; j++) {
                 let a = args[j];
                 w.writeText(this.buildArgs(a, j)).newLine();
@@ -187,7 +176,7 @@ class ClassEmitter {
             };
         }
         w.writeRightBracket().writeText("else").writeLeftBracket().newLine();
-        w.writeText(`duk_error(ctx, DUK_ERR_TYPE_ERROR, "invalid argument value: ` + args.length + `");`).newLine().writeRightBracket();
+        w.writeText(`JS_ThrowTypeError(ctx, "invalid argument value: ` + args.length + `");`).newLine().writeRightBracket();
     }
     /**
      * 创建函数定义
@@ -198,7 +187,7 @@ class ClassEmitter {
             w.writeText(SysEmitter_1.customize[f.customize]);
         }
         else {
-            w.writeText("duk_ret_t " + this.functionName(f) + "(duk_context *ctx)").newLine();
+            w.writeText("JSValue " + this.functionName(f) + "(JSContext* ctx, JSValueConst this_val,int argc, JSValueConst* argv)").newLine();
             w.writeLeftBracket().newLine();
             let next = () => { w.writeText(""); };
             this.buildFuncWithArgs(w, f, f.args);
@@ -213,7 +202,7 @@ class ClassEmitter {
             }
             //next = "}";
             w.writeRightBracket().newLine();
-            w.writeText(`duk_error(ctx, DUK_ERR_TYPE_ERROR, "arguments value not match");`).newLine();
+            w.writeText(`JS_ThrowTypeError(ctx, "arguments value not match");`).newLine();
             w.writeRightBracket().newLine();
         }
     }
@@ -226,32 +215,27 @@ class ClassEmitter {
      */
     buildGetter(w, g) {
         if (g.get) {
-            w.writeText("duk_ret_t " + this.getterName(g, true) + "(duk_context *ctx)").newLine();
+            w.writeText("JSValue " + this.getterName(g, true) + "(JSContext* ctx, JSValueConst this_val)").newLine();
             w.writeLeftBracket().newLine();
             let nativeName = this.data.name;
             if (this.data.nativeName)
                 nativeName = this.data.nativeName;
-            w.writeText("duk_push_this(ctx);").newLine();
-            w.writeText(nativeName + " *native = js_to_native_object<" + nativeName + ">(ctx, -1);").newLine();
-            w.writeText("duk_pop(ctx);").newLine().newLine();
+            w.writeText(nativeName + " *native = js_to_native_object<" + nativeName + ">(ctx, this_val);").newLine();
             w.writeText("auto ret=native->" + g.get + "();").newLine();
-            w.writeText(this.buildReturn(g.type)).newLine();
-            w.writeText("return 1;").newLine();
+            w.writeText("return ").writeText(this.buildReturn(g.type)).newLine();
             w.writeRightBracket().newLine();
         }
         w.newLine();
         if (g.set) {
-            w.writeText("duk_ret_t " + this.getterName(g, false) + "(duk_context *ctx)").newLine();
+            w.writeText("JSValue " + this.getterName(g, false) + "(JSContext* ctx, JSValueConst this_val, JSValueConst val)").newLine();
             w.writeLeftBracket().newLine();
             let nativeName = this.data.name;
             if (this.data.nativeName)
                 nativeName = this.data.nativeName;
-            w.writeText(g.type.getFunc(0)).newLine();
-            w.writeText("duk_push_this(ctx);").newLine();
-            w.writeText(nativeName + " *native = js_to_native_object<" + nativeName + ">(ctx, -1);").newLine();
-            w.writeText("duk_pop(ctx);").newLine().newLine();
+            w.writeText(g.type.getFunc("val", 0)).newLine();
+            w.writeText(nativeName + " *native = js_to_native_object<" + nativeName + ">(ctx, this_val);").newLine();
             w.writeText("native->" + g.set + "(n0);").newLine();
-            w.writeText("return 0;").newLine();
+            w.writeText("return JS_UNDEFINED;").newLine();
             w.writeRightBracket().newLine();
         }
         w.newLine();
@@ -271,18 +255,21 @@ class ClassEmitter {
     ctorName() {
         return "js_" + this.data.name + "_constructor";
     }
+    classId() {
+        return this.data.nativeName + "::GetTypeInfoStatic()->bindingId";
+    }
     /**
-     * 创建参数的赋值语句 如:int n0=duk_require_int(ctx,0);
+     * 创建参数的赋值语句 如:int n0=js_toInt32(ctx,obj);
      * @param a
      * @param idx
      */
     buildArgs(a, idx) {
-        return a.getFunc(idx);
+        return a.getFunc("argv[" + idx + "]", idx);
     }
     checkArgs(a, idx) {
-        let ret = a.checkFunc(idx);
+        let ret = a.checkFunc("argv[" + idx + "]");
         if (a.ignore) {
-            ret = "(" + ret + "||!duk_is_valid_index(ctx," + idx + "))";
+            ret = "(argc<=" + idx + "||" + ret + ")";
         }
         return ret;
     }
@@ -294,22 +281,22 @@ class ClassEmitter {
      */
     buildNativeCtor(w) {
         let nativeName = this.data.nativeName;
-        w.writeText("bool isWeak=false;").newLine();
+        //w.writeText("bool isWeak=false;").newLine();
         w.writeText(nativeName + "* native=nullptr;").newLine();
-        w.writeText("duk_push_heap_stash(ctx);//[stash]").newLine();
-        w.writeText("duk_get_prop_string(ctx,-1,jsNewObjWithNative);//[stash,pointer]").newLine();
-        w.writeText("if(duk_is_pointer(ctx,-1))").writeLeftBracket().newLine();
-        w.writeText("native=(" + nativeName + " *)duk_get_pointer(ctx,-1);").newLine();
-        w.writeText("duk_get_prop_string(ctx,-2,jsIsWeakObj);//[stash,pointer,isWeak]").newLine();
-        w.writeText("isWeak=duk_to_boolean(ctx,-1);").newLine();
-        w.writeText("duk_pop(ctx);//[stash,pointer]").newLine();
-        w.writeText("duk_push_nan(ctx);//[stash,pointer,nan]").newLine();
-        w.writeText("duk_put_prop_string(ctx,-3,jsNewObjWithNative);//[stash,pointer]").newLine();
-        w.writeText("duk_push_nan(ctx);//[stash,pointer,nan]").newLine();
-        w.writeText("duk_put_prop_string(ctx,-3,jsIsWeakObj);//[stash,pointer]").newLine();
-        w.writeText("duk_pop_2(ctx);//[]").newLine();
-        w.writeRightBracket().writeText("else").writeLeftBracket().newLine();
-        w.writeText("duk_pop_2(ctx);//[]").newLine();
+        // w.writeText("duk_push_heap_stash(ctx);//[stash]").newLine();
+        // w.writeText("duk_get_prop_string(ctx,-1,jsNewObjWithNative);//[stash,pointer]").newLine();
+        // w.writeText("if(duk_is_pointer(ctx,-1))").writeLeftBracket().newLine();
+        // w.writeText("native=("+nativeName+" *)duk_get_pointer(ctx,-1);").newLine();
+        // w.writeText("duk_get_prop_string(ctx,-2,jsIsWeakObj);//[stash,pointer,isWeak]").newLine();
+        // w.writeText("isWeak=duk_to_boolean(ctx,-1);").newLine();
+        // w.writeText("duk_pop(ctx);//[stash,pointer]").newLine();
+        // w.writeText("duk_push_nan(ctx);//[stash,pointer,nan]").newLine();
+        // w.writeText("duk_put_prop_string(ctx,-3,jsNewObjWithNative);//[stash,pointer]").newLine();
+        // w.writeText("duk_push_nan(ctx);//[stash,pointer,nan]").newLine();
+        // w.writeText("duk_put_prop_string(ctx,-3,jsIsWeakObj);//[stash,pointer]").newLine();
+        // w.writeText("duk_pop_2(ctx);//[]").newLine();
+        // w.writeRightBracket().writeText("else").writeLeftBracket().newLine();
+        // w.writeText("duk_pop_2(ctx);//[]").newLine();
         if (this.data.ctor) {
             this.buildCtorWithArg(w, this.data.ctor);
             if (this.data.othersCtor) {
@@ -323,8 +310,6 @@ class ClassEmitter {
         else {
             this.buildCtorFunc(w, undefined);
         }
-        w.newLine();
-        w.writeRightBracket().newLine();
         w.newLine();
     }
     buildCtorFunc(w, args) {
@@ -343,7 +328,7 @@ class ClassEmitter {
             ctorFunc += next;
         }
         else {
-            ctorFunc = `duk_error(ctx, DUK_ERR_TYPE_ERROR, "obj can not new");`;
+            ctorFunc = `JS_ThrowTypeError(ctx, "obj can not new");`;
         }
         w.writeText(ctorFunc).newLine();
     }
@@ -370,7 +355,7 @@ class ClassEmitter {
             }
         }
         else {
-            w.writeText("top==0");
+            w.writeText("argc==0");
         }
         w.writeText(")").writeLeftBracket().newLine();
         let nextFunc = () => {
@@ -379,7 +364,7 @@ class ClassEmitter {
         //判断函数个数条件语句
         for (let i = minCount; i <= args.length; i++) {
             nextFunc();
-            w.writeText("top==" + i + ")").writeLeftBracket().newLine();
+            w.writeText("argc==" + i + ")").writeLeftBracket().newLine();
             for (let j = 0; j < i; j++) {
                 let a = args[j];
                 w.writeText(this.buildArgs(a, j)).newLine();
@@ -390,7 +375,7 @@ class ClassEmitter {
             };
         }
         w.writeRightBracket().writeText("else").writeLeftBracket().newLine();
-        w.writeText(`duk_error(ctx, DUK_ERR_TYPE_ERROR, "invalid argument value: ` + args.length + `");`).newLine().writeRightBracket();
+        w.writeText(`JS_ThrowTypeError(ctx, "invalid argument value: ` + args.length + `");`).newLine().writeRightBracket();
         w.newLine();
     }
     /**
@@ -415,11 +400,10 @@ class ClassEmitter {
         next = ");";
         w.writeText(next).newLine();
         if (f.returnType) {
-            w.writeText(this.buildReturn(f.returnType)).newLine();
-            w.writeText("return 1;").newLine();
+            w.writeText("return ").writeText(this.buildReturn(f.returnType)).newLine();
         }
         else {
-            w.writeText("return 0;").newLine();
+            w.writeText("return JS_UNDEFINED;").newLine();
         }
     }
 }

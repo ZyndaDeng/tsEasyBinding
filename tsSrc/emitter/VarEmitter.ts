@@ -1,9 +1,10 @@
 import { ArgData } from "../ArgDatas";
 import { Writter } from "../writter";
-import { Emitter } from "./Emitter";
+import { Emitter, IExport } from "./Emitter";
 import { JSBVar } from "../binding/JSBVar";
 
 export class VarEmitter implements Emitter{
+    
     
 
    
@@ -17,15 +18,17 @@ export class VarEmitter implements Emitter{
 
     emitDefine(): void {
         let w=new Writter("");
-        w.writeText("duk_ret_t " + this.funcName() + "(duk_context *ctx)").writeLeftBracket().newLine();
-        w.writeText("duk_get_global_string(ctx, jsPackageName);").newLine();
+        w.writeText("jsb::Value " + this.funcName() + "(const jsb::Context& ctx)").writeLeftBracket().newLine();
         w.writeText("auto ret=" + this.data.nativeName  + ";").newLine();
         w.writeText(this.data.arg.setFunc()).newLine();
-        w.writeText(`duk_put_prop_string(ctx, -2, "`+this.data.name+`");`).newLine();
-        w.writeText("duk_pop(ctx);").newLine();
+        w.writeText("ctx.newValue("+this.data.arg.setFunc()+");").newLine();
         w.writeRightBracket().newLine();
     }
     emitBinding(): void {
-       this.w.writeText(this.funcName()+"(ctx);");
+       //this.w.writeText(this.funcName()+"(ctx);");
+    }
+
+    setExport(exp:IExport): void {
+        exp.export(this.data.name,this.funcName()+"(ctx);");
     }
 }

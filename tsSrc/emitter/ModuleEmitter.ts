@@ -16,7 +16,7 @@ export class ModuleEmitter implements Emitter{
     }
     emitBinding(): void {
         //this.w.writeOpenModule(this.data.name).newLine();
-        this.w.writeText("jsb::Value ns=ctx.getOrNewObject(ctx.global(),\""+this.data.name+"\");");
+        this.w.writeText("jsb::Value ns=ctx.getOrNewObject(ctx.global(),\""+this.data.name+"\");").newLine();
         for(let d of this.data.members){
             let emitter=CreateEmitter(d,this.w);
             emitter.emitBinding();

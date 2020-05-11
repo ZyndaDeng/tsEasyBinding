@@ -1,7 +1,7 @@
 import * as ts from "typescript"
 import { ArgData, buildArgData } from "../ArgDatas";
 import { BaseBindingData, BindingData } from "../BindingData";
-import { JSBCustomize, JSBRefArgs, JSBNativeName } from "./JSBCustomize";
+import { JSBCustomize, JSBRefArgs, JSBNativeName, JSBCommonClass } from "./JSBCustomize";
 
 export interface MethodData {
     isStatic: boolean;
@@ -27,6 +27,10 @@ export class JSBClass extends BaseBindingData {
         super(dec.name ? dec.name.text : "");
         this.nativeName=this.name;
         JSBNativeName(this,dec);
+        this.finalizer="default_finalizer";
+        if(JSBCommonClass(dec)){
+            this.finalizer="js_"+this.nativeName+"_finalizer";
+        }
         this.bindingType = "class";
         this.extend = "";
         if (dec.heritageClauses) {
@@ -227,6 +231,7 @@ export class JSBClass extends BaseBindingData {
     bindingType: "class";
     nativeName: string;
     extend: string;
+    finalizer:string;
     ctor?: Array<ArgData>;
     customizeName?:string; 
     othersCtor?: Array<Array<ArgData>>;

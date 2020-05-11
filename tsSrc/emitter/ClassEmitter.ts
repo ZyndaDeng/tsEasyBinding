@@ -4,6 +4,7 @@ import { Emitter, IExport } from "./Emitter";
 import { Writter } from "../writter";
 import { customize } from "./SysEmitter";
 import { JSBClass, MethodData, GetterData } from "../binding/JSBClass";
+import { JSBCommonClass } from "../binding/JSBCustomize";
 
 
 
@@ -23,6 +24,10 @@ export class ClassEmitter implements Emitter{
         for (let k in this.data.getters) {
             let g = this.data.getters[k];
              this.buildGetter(this.w,g);
+        }
+        this.w.newLine();
+        if(this.data.finalizer!="default_finalizer"){
+            this.buildFinalizer();
         }
         this.w.newLine();
         this.buildMain(this.w);
@@ -66,7 +71,13 @@ export class ClassEmitter implements Emitter{
                 funcs.push(f);
             }
         }
-        if(funcs.length>0||this.data.getters){
+        let getsetCount=0;
+        for(let k in this.data.getters){
+            getsetCount++;
+        }
+        let hasMembers=false;
+        if(funcs.length>0||getsetCount>0){
+            hasMembers=true;
             w.writeText("static const JSCFunctionListEntry functions[] = ").newLine().writeLeftBracket().newLine();
             for (let f of funcs) {
                 w.writeText("JSB_CFUNC_DEF(\"" + f.name + "\", 0," + this.functionName(f) + "),").newLine();
@@ -79,8 +90,9 @@ export class ClassEmitter implements Emitter{
             } 
             w.writeRightBracket().writeText(";").newLine();
         }
-       
+        let hasStaticMembers=false;
         if (staticFuncs.length > 0) {
+            hasStaticMembers=true;
             w.writeText("static const JSCFunctionListEntry staticFuncs[] = ").newLine().writeLeftBracket().newLine();
             for (let f of staticFuncs) {
                 w.writeText("JSB_CFUNC_DEF(\"" + f.name + "\", 0," + this.functionName(f) + "),").newLine();
@@ -93,11 +105,26 @@ export class ClassEmitter implements Emitter{
        let extendId="0";
        if(this.data.extend.length>0){
            extendId=this.data.extend+"::GetTypeInfoStatic()->bindingId";
+           if(this.data.extend=="RefCounted"){
+               extendId="js_RefCounted_id";
+           }
        }
-       let finalizer="default_finalizer"
-        w.writeText("jsb::JSBClass c(ctx,&("+this.classId()+"),\"" + this.data.name + "\"," + this.ctorName() +","+finalizer+ "," + extendId + ");" ).newLine();
+       let finalizer=this.data.finalizer;
+        w.writeText("jsb::JSBClass c(ctx,(JSClassID*)&("+this.classId()+"),\"" + this.data.name + "\"," + this.ctorName() +","+finalizer+ "," + extendId + ");" ).newLine();
+        if(hasMembers)w.writeText("c.setMembers(functions, countof(functions));").newLine();
+        if(hasStaticMembers)w.writeText("c.setStaticMembers(staticFuncs, countof(staticFuncs));").newLine();
        w.writeText("return c.ctor;").newLine();
         w.writeRightBracket().newLine();
+    }
+
+    protected buildFinalizer(){
+        let w=this.w;
+        w.writeText("void " + this.ctorName() + "(JSRuntime* rt, JSValue val)").newLine();
+        w.writeLeftBracket().newLine();
+        w.writeText(this.data.nativeName+"* native=("+this.data.nativeName+"*) JS_GetOpaque(val, "+this.classId()+");");
+        w.writeText("delete native;").newLine();
+
+        w.writeRightBracket().newLine().newLine();
     }
 
     /**

@@ -56,4 +56,18 @@ function JSBCustomize(node) {
     }
 }
 exports.JSBCustomize = JSBCustomize;
+function JSBCommonClass(node) {
+    let jsDocTags = ts.getJSDocTags(node);
+    if (jsDocTags) {
+        for (let t of jsDocTags) {
+            if (t.tagName.text == "bindCommonClass") {
+                //let comment=t.comment?.trim();
+                return true;
+                break;
+            }
+        }
+    }
+    return false;
+}
+exports.JSBCommonClass = JSBCommonClass;
 //# sourceMappingURL=JSBCustomize.js.map

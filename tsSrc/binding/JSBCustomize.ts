@@ -50,3 +50,17 @@ export function JSBCustomize(node:ts.Node){
         }
     }
 }
+
+export function JSBCommonClass(node:ts.Node){
+    let jsDocTags=ts.getJSDocTags(node);
+    if(jsDocTags){
+        for(let t of jsDocTags){
+            if(t.tagName.text=="bindCommonClass"){
+                //let comment=t.comment?.trim();
+                return true;
+                break;
+            }
+        }
+    }
+    return false;
+}

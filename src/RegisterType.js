@@ -211,6 +211,22 @@ function RegisterType() {
     ArgDatas_1.registerArgs["ComponentMap[K]"] = ComponentMapArg;
     ArgDatas_1.registerArgs["Component"] = ComponentMapArg;
     ArgDatas_1.registerArgs["K"] = ArgDatas_1.StringArg;
+    class ResourceMapArg extends ArgDatas_1.ArgDataBase {
+        constructor(p, def) {
+            super(p, def);
+            this.type = "Resource";
+        }
+        checkFunc(val) {
+            return "js_is_native(ctx," + val + "," + this.type + "::GetTypeInfoStatic()->bindingId)";
+        }
+        getFunc(val, idx) {
+            return this.type + "* n" + idx + "=js_to_native_object<" + this.type + ">(ctx," + val + ");";
+        }
+        setFunc() {
+            return `js_push_native_object(ctx,ret,` + this.type + `::GetTypeInfoStatic()->bindingId);`;
+        }
+    }
+    ArgDatas_1.registerArgs["ResourceMap[K]"] = ResourceMapArg;
     class UIElementMapArg extends ArgDatas_1.ArgDataBase {
         constructor(p, def) {
             super(p, def);
@@ -263,93 +279,44 @@ function RegisterType() {
 }
 exports.RegisterType = RegisterType;
 function RegisterCustomize() {
-    SysEmitter_1.customize["ResourceCache_GetResource"] =
-        `
-    duk_ret_t js_ResourceCache_GetResource(duk_context *ctx)
-    {
-        if(duk_is_string(ctx,0)
-        &&duk_is_string(ctx,1)
-        &&(duk_is_boolean(ctx,2)||!duk_is_valid_index(ctx,2))
-        ){
-            if(duk_get_top(ctx)==2){
-                String n0= duk_require_string(ctx, 0);
-                String n1= duk_require_string(ctx, 1);
-                duk_push_this(ctx);
-                ResourceCache* native=js_to_native_object<ResourceCache>(ctx,-1);
-                duk_pop(ctx);
-                auto ret=native->GetResource(n0,n1);
-                js_push_native_object(ctx,ret,ret->GetTypeName());
-                return 1;
-    
-            }else if(duk_get_top(ctx)==3){
-                String n0= duk_require_string(ctx, 0);
-                String n1= duk_require_string(ctx, 1);
-                bool n2= duk_require_boolean(ctx, 2) ? true : false;
-                duk_push_this(ctx);
-                ResourceCache* native=js_to_native_object<ResourceCache>(ctx,-1);
-                duk_pop(ctx);
-                auto ret=native->GetResource(n0,n1,n2);
-                js_push_native_object(ctx,ret,ret->GetTypeName());
-                return 1;
-    
-            }else{
-                duk_error(ctx, DUK_ERR_TYPE_ERROR, "invalid argument value: 3");
-            }
-        }
-        duk_error(ctx, DUK_ERR_TYPE_ERROR, "arguments value not match");
-    }
-    `;
     SysEmitter_1.customize["Node_ScriptComponent"] = `
-    duk_ret_t js_Node_ScriptComponent(duk_context* ctx)
+    JSValue js_Node_ScriptComponent(JSContext* ctx, JSValueConst this_val, int argc, JSValueConst* argv)
 {
-	if (duk_is_constructable(ctx, 0)
-		&& (duk_is_number(ctx, 1) || !duk_is_valid_index(ctx, 1))
-		&& (duk_is_number(ctx, 2) || !duk_is_valid_index(ctx, 2))
+	if (JS_IsConstructor(ctx,argv[0])
+		&& (argc <= 1 || JS_IsInteger(argv[1]))
+		&& (argc <= 2 || JS_IsInteger(argv[2]))
 		) {
-		if (duk_get_top(ctx) == 1) {
-			void* ptr = duk_get_heapptr(ctx, 0);
-			duk_push_this(ctx);
-			Node* native = js_to_native_object<Node>(ctx, -1);
-			duk_pop(ctx);
+		if (argc == 1) {
+			Node* native = js_to_native_object<Node>(ctx, this_val);
 			SharedPtr<JsComponent> com(new JsComponent(jsGetContext(ctx)));
-			auto ret =com->createInstance(ptr);
-			native->AddComponent(com,0, REPLICATED);
-			duk_push_heapptr(ctx,ret);
-			return 1;
-
+			auto ret = com->createInstance({ctx,argv[0]});
+			native->AddComponent(com, 0, REPLICATED);
+			return ret.v;
 		}
-		else if (duk_get_top(ctx) == 2) {
-			void* ptr = duk_get_heapptr(ctx, 0);
-			CreateMode n1 = (CreateMode)duk_require_int(ctx, 1);
-			duk_push_this(ctx);
-			Node* native = js_to_native_object<Node>(ctx, -1);
-			duk_pop(ctx);
+		else if (argc == 2) {
+			Node* native = js_to_native_object<Node>(ctx, this_val);
+			CreateMode n1 = (CreateMode)JS_VALUE_GET_INT(argv[1]);
 			SharedPtr<JsComponent> com(new JsComponent(jsGetContext(ctx)));
-			auto ret =com->createInstance(ptr);
+			auto ret = com->createInstance({ ctx,argv[0] });
 			native->AddComponent(com, 0, n1);
-			duk_push_heapptr(ctx,ret);
-			return 1;
+			return ret.v;
 
 		}
-		else if (duk_get_top(ctx) == 3) {
-			void* ptr = duk_get_heapptr(ctx, 0);
-			CreateMode n1 = (CreateMode)duk_require_int(ctx, 1);
-			unsigned n2 = duk_require_uint(ctx, 2);
-			duk_push_this(ctx);
-			Node* native = js_to_native_object<Node>(ctx, -1);
-			duk_pop(ctx);
+		else if (argc == 3) {
+			Node* native = js_to_native_object<Node>(ctx, this_val);
+			CreateMode n1 = (CreateMode)JS_VALUE_GET_INT(argv[1]);
+			unsigned n2 = JS_VALUE_GET_INT(argv[2]);
 			SharedPtr<JsComponent> com(new JsComponent(jsGetContext(ctx)));
-			auto ret =com->createInstance(ptr);
+			auto ret = com->createInstance({ ctx,argv[0] });
 			native->AddComponent(com, n2, n1);
-			duk_push_heapptr(ctx,ret);
-			return 1;
+			return ret.v;
 
 		}
 		else {
-			duk_error(ctx, DUK_ERR_TYPE_ERROR, "invalid argument value: 3");
+			JS_ThrowTypeError(ctx, "invalid argument value: 3");
 		}
 	}
-	duk_error(ctx, DUK_ERR_TYPE_ERROR, "arguments value not match");
+	JS_ThrowTypeError(ctx, "arguments value not match");
 }`;
 }
 exports.RegisterCustomize = RegisterCustomize;

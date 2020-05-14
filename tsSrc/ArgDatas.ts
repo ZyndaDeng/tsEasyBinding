@@ -1,6 +1,7 @@
 
 import * as ts from "typescript"
 import { enumDefined } from "./emitter/SysEmitter";
+import { JSBClass } from "./binding/JSBClass";
 
 export interface ArgData {
     type: string;
@@ -147,8 +148,10 @@ export class ArrayArg extends ArgDataBase {
             return "js_push_StringVector(ctx,ret);"
         }else if(this.typeName=="Variant"){
             return "js_push_VariantVector(ctx,ret);"
-        }else if(this.typeName=="int"||this.typeName=="number"||this.typeName=="uint"){
-            return "js_push_normal_array(ctx,ret,duk_push_number);"
+        }else if(this.typeName=="int"||this.typeName=="uint"){
+            return "js_push_normal_array(ctx,ret,JS_NewInt32);"
+        }else if(this.typeName=="number"){
+            return "js_push_normal_array(ctx,ret,JS_NewFloat64);"
         }
         return "js_push_native_array(ctx,ret);"
     }
@@ -178,14 +181,19 @@ export class NativeArg extends ArgDataBase {
         this.type = p.getText();
     }
     checkFunc(val: string): string {
-        return "js_is_native(ctx," + val + ","+ this.type+"::GetTypeInfoStatic()->bindingId)";
+        let classId=JSBClass.classes[this.type]?.classId;
+        if(!classId)classId=this.type + "::GetTypeInfoStatic()->bindingId";
+        return "js_is_native(ctx," + val + ","+ classId+")";
     }
     getFunc(val: string,idx:number): string {
        
         return this.type + "* n" + idx + "=js_to_native_object<" + this.type + ">(ctx," + val + ");"
     }
     setFunc(): string {
-        return `js_push_native_object(ctx,ret,` + this.type + `::GetTypeInfoStatic()->bindingId);`
+        let classId=JSBClass.classes[this.type]?.classId;
+        if(classId.endsWith("->bindingId"))classId="ret->GetTypeInfo()->bindingId";//this.type + "::GetTypeInfoStatic()->bindingId";
+        
+        return `js_push_native_object(ctx,ret,` +classId  + `);`
     }
 }
 

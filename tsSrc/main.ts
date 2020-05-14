@@ -153,6 +153,7 @@ using namespace Urho3D;`,
     #include "Physics/PhysicsWorld.h"
     #include "Physics/RigidBody.h"
     #include "Graphics/Model.h"
+    #include "Graphics/CustomGeometry.h"
     #include "Physics/RaycastVehicle.h"
     #include <JavaScript/easyBindings/ValTran.h>
 #include <JavaScript/easyBindings/BindingSys.h>

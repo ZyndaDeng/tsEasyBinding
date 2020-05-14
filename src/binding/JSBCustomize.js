@@ -27,6 +27,22 @@ function JSBNativeName(arg, node) {
     }
 }
 exports.JSBNativeName = JSBNativeName;
+function JSBGetSet(node) {
+    var _a;
+    let jsDocTags = ts.getJSDocTags(node);
+    if (jsDocTags) {
+        for (let t of jsDocTags) {
+            if (t.tagName.text == "GetSet") {
+                let comment = (_a = t.comment) === null || _a === void 0 ? void 0 : _a.trim();
+                if (comment) {
+                    return comment;
+                }
+                break;
+            }
+        }
+    }
+}
+exports.JSBGetSet = JSBGetSet;
 function JSBRefArgs(node) {
     let jsDocTags = ts.getJSDocTags(node);
     if (jsDocTags) {

@@ -16,16 +16,17 @@ function RegisterType() {
         }
     }
     ArgDatas_1.registerArgs["String"] = Urho3DStringArg;
-    class StringHashArg extends ArgDatas_1.ArgDataBase {
-        constructor(p, def) {
-            super(p, def);
-            this.type = "StringHash";
-        }
-        setFunc() {
-            return "js_push_urho3d_string(ctx,ret.ToString());";
-        }
-    }
-    ArgDatas_1.registerArgs["StringHash"] = StringHashArg;
+    // class StringHashArg extends ArgDataBase {
+    //     constructor(p: ts.TypeNode, def?: boolean) {
+    //         super(p, def);
+    //         this.type = "StringHash";
+    //     }
+    //     setFunc(): string {
+    //         return "js_push_urho3d_string(ctx,ret.ToString());"
+    //     }
+    // }
+    ArgDatas_1.registerArgs["StringHash"] = ArgDatas_1.DefaultTypeArg;
+    ArgDatas_1.registerArgs["Bone"] = ArgDatas_1.DefaultTypeArg;
     // class Vector2Arg extends ArgDataBase {
     //     constructor(p: ts.TypeNode, def?: boolean) {
     //         super(p, def);
@@ -205,7 +206,7 @@ function RegisterType() {
             return this.type + "* n" + idx + "=js_to_native_object<" + this.type + ">(ctx," + val + ");";
         }
         setFunc() {
-            return `js_push_native_object(ctx,ret,` + this.type + `::GetTypeInfoStatic()->bindingId);`;
+            return `js_push_native_object(ctx,ret,ret->GetTypeInfo()->bindingId);`;
         }
     }
     ArgDatas_1.registerArgs["ComponentMap[K]"] = ComponentMapArg;
@@ -223,7 +224,7 @@ function RegisterType() {
             return this.type + "* n" + idx + "=js_to_native_object<" + this.type + ">(ctx," + val + ");";
         }
         setFunc() {
-            return `js_push_native_object(ctx,ret,` + this.type + `::GetTypeInfoStatic()->bindingId);`;
+            return `js_push_native_object(ctx,ret,ret->GetTypeInfo()->bindingId);`;
         }
     }
     ArgDatas_1.registerArgs["ResourceMap[K]"] = ResourceMapArg;
@@ -239,7 +240,7 @@ function RegisterType() {
             return this.type + "* n" + idx + "=js_to_native_object<" + this.type + ">(ctx," + val + ");";
         }
         setFunc() {
-            return `js_push_native_object(ctx,ret,` + this.type + `::GetTypeInfoStatic()->bindingId);`;
+            return `js_push_native_object(ctx,ret,ret->GetTypeInfo()->bindingId);`;
         }
     }
     ArgDatas_1.registerArgs["UIElementMap[K]"] = UIElementMapArg;

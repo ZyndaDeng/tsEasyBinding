@@ -1,7 +1,7 @@
 import * as ts from "typescript"
 import { ArgData, buildArgData } from "../ArgDatas";
 import { BaseBindingData, BindingData } from "../BindingData";
-import { JSBCustomize, JSBRefArgs, JSBNativeName, JSBCommonClass } from "./JSBCustomize";
+import { JSBCustomize, JSBRefArgs, JSBNativeName, JSBCommonClass, JSBGetSet } from "./JSBCustomize";
 
 export interface MethodData {
     isStatic: boolean;
@@ -9,15 +9,18 @@ export interface MethodData {
     nativeName:string;
     returnType?: ArgData;
     args: ArgData[];
-    othersArgs?: Array<Array<ArgData>>;
+    override?:Array<{ returnType?: ArgData;args: ArgData[];}>;
     customize?:string;
 }
 
+
+type GetSet={name:string,isFunc:boolean};
 export interface GetterData {
     name: string;
-    get?: string;
-    set?: string;
+    get?: GetSet;
+    set?: GetSet;
     type: ArgData;
+    isStatic:boolean;
 }
 
 export class JSBClass extends BaseBindingData {
@@ -44,6 +47,7 @@ export class JSBClass extends BaseBindingData {
         //this.ctor = [];
 
         this.readClass(dec);
+        JSBClass.classes[this.name]=this;
     }
 
     static IsMyType(data: BindingData): data is JSBClass {
@@ -82,8 +86,9 @@ export class JSBClass extends BaseBindingData {
         if (this.methods[name]) {
             //这是该函数的重载
             let md = this.methods[name];
-            if (!md.othersArgs) md.othersArgs = [];
+            if (!md.override) md.override = [];
             let arr = new Array<ArgData>();
+            let returnType:ArgData|undefined=undefined;
             if (met.parameters) {
                 for (let p of met.parameters) {
                     if (p.type) {
@@ -101,7 +106,10 @@ export class JSBClass extends BaseBindingData {
                     }
                 }
             }
-            md.othersArgs.push(arr);
+            if (met.type && met.type.kind != ts.SyntaxKind.VoidKeyword) {
+                returnType = buildArgData(met.type, undefined);
+            }
+            md.override.push({returnType:returnType,args:arr});
         } else {
             //添加该函数
             let md: MethodData = {
@@ -164,24 +172,41 @@ export class JSBClass extends BaseBindingData {
         }
     }
 
-    protected GetterName(met: ts.SetAccessorDeclaration | ts.GetAccessorDeclaration, isGet: boolean) {
+    protected GetterName(met: ts.SetAccessorDeclaration | ts.GetAccessorDeclaration, isGet: boolean) :GetSet{
         let name = met.name.getText();
-        let ret={nativeName:""}
-        JSBNativeName(ret,met);
-        if(ret.nativeName!=""){
-            return ret.nativeName;
+        let self={nativeName:""};
+        let ret={name:name,isFunc:true};
+        JSBNativeName(self,met);
+        if(self.nativeName!=""){
+            ret.name=self.nativeName;   
+        }else{
+            ret=this.defalutGetter(name, isGet);
         }
-        return this.defalutGetter(name, isGet);
+        let getset=JSBGetSet(met);
+        if(getset){
+            ret.name=getset;
+            ret.isFunc=false;
+        }
+        return ret;
     }
     protected defalutGetter(name: string, isGet: boolean) {
         let f = name.charAt(0);
         let otherChars = name.substring(1);
         f = f.toUpperCase();
         let getOrSet = isGet ? "Get" : "Set";
-        return getOrSet + f + otherChars;
+        return {name:getOrSet + f + otherChars,isFunc:true};
     }
 
     protected readGetAccessor(met: ts.GetAccessorDeclaration) {
+        let isStatic = false;
+        if (met.modifiers) {
+            for (let a of met.modifiers) {
+                if (a.kind == ts.SyntaxKind.StaticKeyword) {
+                    isStatic = true;
+                    break;
+                }
+            }
+        }
         let name = met.name.getText();
         if (!met.type)
             throw new Error("class:" + this.name + " getter " + name + " type undfined");
@@ -196,13 +221,23 @@ export class JSBClass extends BaseBindingData {
             let gd: GetterData = {
                 name: name,
                 get: this.GetterName(met, true),
-                type: buildArgData(met.type, undefined)
+                type: buildArgData(met.type, undefined),
+                isStatic:isStatic
             };
             this.getters[name] = gd;
         }
     }
 
     protected readSetAccessor(met: ts.SetAccessorDeclaration) {
+        let isStatic = false;
+        if (met.modifiers) {
+            for (let a of met.modifiers) {
+                if (a.kind == ts.SyntaxKind.StaticKeyword) {
+                    isStatic = true;
+                    break;
+                }
+            }
+        }
         let name = met.name.getText();
         let p = met.parameters[0];
         if (!p.type)
@@ -219,10 +254,33 @@ export class JSBClass extends BaseBindingData {
             let gd: GetterData = {
                 name: name,
                 set: this.GetterName(met, false),
-                type: buildArgData(p.type, undefined)
+                type: buildArgData(p.type, undefined),
+                isStatic:isStatic
             };
             this.getters[name] = gd;
         }
+    }
+
+    get classId(){
+        if(this.isInstanceof(JSBClass.classes["Object"])){
+            return this.nativeName + "::GetTypeInfoStatic()->bindingId";
+        }else{
+            return "js_"+this.nativeName+"_id";
+        }  
+    }
+
+    isInstanceof(jsbClass:JSBClass){
+        let cur:JSBClass|undefined=this;
+        // if(this.name=="Object"){
+        //     return true;
+        // }
+        while(cur){
+            if(cur==jsbClass){
+                return true;
+            }
+            cur=JSBClass.classes[cur.extend];
+        }
+        return false;
     }
 
     // protected hasSetCtor: boolean;
@@ -237,4 +295,5 @@ export class JSBClass extends BaseBindingData {
     othersCtor?: Array<Array<ArgData>>;
     getters: { [key: string]: GetterData };
     methods: { [key: string]: MethodData };
+    static classes:{ [key: string]: JSBClass }={};
 }

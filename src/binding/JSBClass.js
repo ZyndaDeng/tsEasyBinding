@@ -32,6 +32,7 @@ class JSBClass extends BindingData_1.BaseBindingData {
         this.getters = {};
         //this.ctor = [];
         this.readClass(dec);
+        JSBClass.classes[this.name] = this;
     }
     static IsMyType(data) {
         return data.bindingType == "class";
@@ -69,9 +70,10 @@ class JSBClass extends BindingData_1.BaseBindingData {
         if (this.methods[name]) {
             //这是该函数的重载
             let md = this.methods[name];
-            if (!md.othersArgs)
-                md.othersArgs = [];
+            if (!md.override)
+                md.override = [];
             let arr = new Array();
+            let returnType = undefined;
             if (met.parameters) {
                 for (let p of met.parameters) {
                     if (p.type) {
@@ -90,7 +92,10 @@ class JSBClass extends BindingData_1.BaseBindingData {
                     }
                 }
             }
-            md.othersArgs.push(arr);
+            if (met.type && met.type.kind != ts.SyntaxKind.VoidKeyword) {
+                returnType = ArgDatas_1.buildArgData(met.type, undefined);
+            }
+            md.override.push({ returnType: returnType, args: arr });
         }
         else {
             //添加该函数
@@ -157,21 +162,39 @@ class JSBClass extends BindingData_1.BaseBindingData {
     }
     GetterName(met, isGet) {
         let name = met.name.getText();
-        let ret = { nativeName: "" };
-        JSBCustomize_1.JSBNativeName(ret, met);
-        if (ret.nativeName != "") {
-            return ret.nativeName;
+        let self = { nativeName: "" };
+        let ret = { name: name, isFunc: true };
+        JSBCustomize_1.JSBNativeName(self, met);
+        if (self.nativeName != "") {
+            ret.name = self.nativeName;
         }
-        return this.defalutGetter(name, isGet);
+        else {
+            ret = this.defalutGetter(name, isGet);
+        }
+        let getset = JSBCustomize_1.JSBGetSet(met);
+        if (getset) {
+            ret.name = getset;
+            ret.isFunc = false;
+        }
+        return ret;
     }
     defalutGetter(name, isGet) {
         let f = name.charAt(0);
         let otherChars = name.substring(1);
         f = f.toUpperCase();
         let getOrSet = isGet ? "Get" : "Set";
-        return getOrSet + f + otherChars;
+        return { name: getOrSet + f + otherChars, isFunc: true };
     }
     readGetAccessor(met) {
+        let isStatic = false;
+        if (met.modifiers) {
+            for (let a of met.modifiers) {
+                if (a.kind == ts.SyntaxKind.StaticKeyword) {
+                    isStatic = true;
+                    break;
+                }
+            }
+        }
         let name = met.name.getText();
         if (!met.type)
             throw new Error("class:" + this.name + " getter " + name + " type undfined");
@@ -187,12 +210,22 @@ class JSBClass extends BindingData_1.BaseBindingData {
             let gd = {
                 name: name,
                 get: this.GetterName(met, true),
-                type: ArgDatas_1.buildArgData(met.type, undefined)
+                type: ArgDatas_1.buildArgData(met.type, undefined),
+                isStatic: isStatic
             };
             this.getters[name] = gd;
         }
     }
     readSetAccessor(met) {
+        let isStatic = false;
+        if (met.modifiers) {
+            for (let a of met.modifiers) {
+                if (a.kind == ts.SyntaxKind.StaticKeyword) {
+                    isStatic = true;
+                    break;
+                }
+            }
+        }
         let name = met.name.getText();
         let p = met.parameters[0];
         if (!p.type)
@@ -209,11 +242,34 @@ class JSBClass extends BindingData_1.BaseBindingData {
             let gd = {
                 name: name,
                 set: this.GetterName(met, false),
-                type: ArgDatas_1.buildArgData(p.type, undefined)
+                type: ArgDatas_1.buildArgData(p.type, undefined),
+                isStatic: isStatic
             };
             this.getters[name] = gd;
         }
     }
+    get classId() {
+        if (this.isInstanceof(JSBClass.classes["Object"])) {
+            return this.nativeName + "::GetTypeInfoStatic()->bindingId";
+        }
+        else {
+            return "js_" + this.nativeName + "_id";
+        }
+    }
+    isInstanceof(jsbClass) {
+        let cur = this;
+        // if(this.name=="Object"){
+        //     return true;
+        // }
+        while (cur) {
+            if (cur == jsbClass) {
+                return true;
+            }
+            cur = JSBClass.classes[cur.extend];
+        }
+        return false;
+    }
 }
 exports.JSBClass = JSBClass;
+JSBClass.classes = {};
 //# sourceMappingURL=JSBClass.js.map

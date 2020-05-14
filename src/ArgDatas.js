@@ -9,6 +9,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const ts = __importStar(require("typescript"));
 const SysEmitter_1 = require("./emitter/SysEmitter");
+const JSBClass_1 = require("./binding/JSBClass");
 exports.registerArgs = {};
 class ArgDataBase {
     constructor(p, ignore) {
@@ -143,8 +144,11 @@ class ArrayArg extends ArgDataBase {
         else if (this.typeName == "Variant") {
             return "js_push_VariantVector(ctx,ret);";
         }
-        else if (this.typeName == "int" || this.typeName == "number" || this.typeName == "uint") {
-            return "js_push_normal_array(ctx,ret,duk_push_number);";
+        else if (this.typeName == "int" || this.typeName == "uint") {
+            return "js_push_normal_array(ctx,ret,JS_NewInt32);";
+        }
+        else if (this.typeName == "number") {
+            return "js_push_normal_array(ctx,ret,JS_NewFloat64);";
         }
         return "js_push_native_array(ctx,ret);";
     }
@@ -172,13 +176,21 @@ class NativeArg extends ArgDataBase {
         this.type = p.getText();
     }
     checkFunc(val) {
-        return "js_is_native(ctx," + val + "," + this.type + "::GetTypeInfoStatic()->bindingId)";
+        var _a;
+        let classId = (_a = JSBClass_1.JSBClass.classes[this.type]) === null || _a === void 0 ? void 0 : _a.classId;
+        if (!classId)
+            classId = this.type + "::GetTypeInfoStatic()->bindingId";
+        return "js_is_native(ctx," + val + "," + classId + ")";
     }
     getFunc(val, idx) {
         return this.type + "* n" + idx + "=js_to_native_object<" + this.type + ">(ctx," + val + ");";
     }
     setFunc() {
-        return `js_push_native_object(ctx,ret,` + this.type + `::GetTypeInfoStatic()->bindingId);`;
+        var _a;
+        let classId = (_a = JSBClass_1.JSBClass.classes[this.type]) === null || _a === void 0 ? void 0 : _a.classId;
+        if (classId.endsWith("->bindingId"))
+            classId = "ret->GetTypeInfo()->bindingId"; //this.type + "::GetTypeInfoStatic()->bindingId";
+        return `js_push_native_object(ctx,ret,` + classId + `);`;
     }
 }
 exports.NativeArg = NativeArg;

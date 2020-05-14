@@ -43,6 +43,8 @@ class ClassEmitter {
         w.writeText("jsb::Value " + this.apiName() + "(const jsb::Context& ctx)").newLine().writeLeftBracket().newLine();
         let funcs = new Array();
         let staticFuncs = new Array();
+        let getter = new Array();
+        let staticGetter = new Array();
         for (let k in this.data.methods) {
             let f = this.data.methods[k];
             if (f.isStatic) {
@@ -52,31 +54,36 @@ class ClassEmitter {
                 funcs.push(f);
             }
         }
-        let getsetCount = 0;
         for (let k in this.data.getters) {
-            getsetCount++;
+            let g = this.data.getters[k];
+            if (g.isStatic) {
+                staticGetter.push(g);
+            }
+            else {
+                getter.push(g);
+            }
         }
         let hasMembers = false;
-        if (funcs.length > 0 || getsetCount > 0) {
+        if (funcs.length > 0 || getter.length > 0) {
             hasMembers = true;
             w.writeText("static const JSCFunctionListEntry functions[] = ").newLine().writeLeftBracket().newLine();
             for (let f of funcs) {
                 w.writeText("JSB_CFUNC_DEF(\"" + f.name + "\", 0," + this.functionName(f) + "),").newLine();
             }
-            if (this.data.getters) {
-                for (let k in this.data.getters) {
-                    let g = this.data.getters[k];
-                    w.writeText("JSB_CGETSET_DEF(\"" + g.name + "\"," + this.getterName(g, true) + "," + this.getterName(g, false) + "),").newLine();
-                }
+            for (let g of getter) {
+                w.writeText("JSB_CGETSET_DEF(\"" + g.name + "\"," + this.getterName(g, true) + "," + this.getterName(g, false) + "),").newLine();
             }
             w.writeRightBracket().writeText(";").newLine();
         }
         let hasStaticMembers = false;
-        if (staticFuncs.length > 0) {
+        if (staticFuncs.length > 0 || staticGetter.length > 0) {
             hasStaticMembers = true;
             w.writeText("static const JSCFunctionListEntry staticFuncs[] = ").newLine().writeLeftBracket().newLine();
             for (let f of staticFuncs) {
                 w.writeText("JSB_CFUNC_DEF(\"" + f.name + "\", 0," + this.functionName(f) + "),").newLine();
+            }
+            for (let g of staticGetter) {
+                w.writeText("JSB_CGETSET_DEF(\"" + g.name + "\"," + this.getterName(g, true) + "," + this.getterName(g, false) + "),").newLine();
             }
             w.writeRightBracket().writeText(";").newLine();
         }
@@ -89,9 +96,12 @@ class ClassEmitter {
             if (this.data.extend == "RefCounted") {
                 extendId = "js_RefCounted_id";
             }
+            else if (this.data.extend == "Object") {
+                extendId = "js_Object_id";
+            }
         }
         let finalizer = this.data.finalizer;
-        w.writeText("jsb::JSBClass c(ctx,(JSClassID*)&(" + this.classId() + "),\"" + this.data.name + "\"," + this.ctorName() + "," + finalizer + "," + extendId + ");").newLine();
+        w.writeText("jsb::JSBClass c(ctx,(JSClassID*)&(" + this.data.classId + "),\"" + this.data.name + "\"," + this.ctorName() + "," + finalizer + "," + extendId + ");").newLine();
         if (hasMembers)
             w.writeText("c.setMembers(functions, countof(functions));").newLine();
         if (hasStaticMembers)
@@ -101,9 +111,9 @@ class ClassEmitter {
     }
     buildFinalizer() {
         let w = this.w;
-        w.writeText("void " + this.ctorName() + "(JSRuntime* rt, JSValue val)").newLine();
+        w.writeText("void " + this.finalizerName() + "(JSRuntime* rt, JSValue val)").newLine();
         w.writeLeftBracket().newLine();
-        w.writeText(this.data.nativeName + "* native=(" + this.data.nativeName + "*) JS_GetOpaque(val, " + this.classId() + ");");
+        w.writeText(this.data.nativeName + "* native=(" + this.data.nativeName + "*) JS_GetOpaque(val, " + this.data.classId + ");");
         w.writeText("delete native;").newLine();
         w.writeRightBracket().newLine().newLine();
     }
@@ -117,8 +127,13 @@ class ClassEmitter {
         this.buildNativeCtor(w);
         w.newLine();
         w.writeText("if(native)").writeLeftBracket().newLine();
-        w.writeText("JSValue ret = JS_NewObjectClass(ctx, " + this.classId() + ");").newLine();
-        w.writeText("Add_Object(ret,native);").newLine();
+        w.writeText("JSValue ret = JS_NewObjectClass(ctx, " + this.data.classId + ");").newLine();
+        if (this.data.finalizer == "default_finalizer") {
+            w.writeText("Add_Object(ret,native);").newLine();
+        }
+        else {
+            w.writeText("JS_SetOpaque(ret, native);").newLine();
+        }
         w.writeText("return ret;").newLine();
         w.writeRightBracket().newLine();
         w.writeText("return JS_UNDEFINED;").newLine();
@@ -129,7 +144,7 @@ class ClassEmitter {
      * @param f
      * @param argCount
      */
-    buildRunNetiveFunc(w, f, args) {
+    buildRunNetiveFunc(w, f, args, returnType) {
         let nativeName = this.data.name;
         if (this.data.nativeName)
             nativeName = this.data.nativeName;
@@ -146,9 +161,9 @@ class ClassEmitter {
                 next = ",";
             }
             argsInside += ");";
-            if (f.returnType) {
+            if (returnType) {
                 w.writeText("auto ret=" + nativeName + "::" + f.nativeName + argsInside).newLine();
-                w.writeText("return ").writeText(f.returnType.setFunc()).newLine();
+                w.writeText("return ").writeText(returnType.setFunc()).newLine();
             }
             else {
                 w.writeText(nativeName + "::" + f.nativeName + argsInside).newLine();
@@ -157,12 +172,12 @@ class ClassEmitter {
         }
         else {
             w.writeText(nativeName + "* native=js_to_native_object<" + nativeName + ">(ctx,this_val);").newLine();
-            this.buildNativeFunc(w, f, args);
+            this.buildNativeFunc(w, f, args, returnType);
             w.newLine();
         }
     }
     /**创建带特定函数的条件语句 */
-    buildFuncWithArgs(w, f, args) {
+    buildFuncWithArgs(w, f, args, returnType) {
         w.writeText("if(");
         let next = "";
         let minCount = args.length; //最少参数个数
@@ -197,7 +212,7 @@ class ClassEmitter {
                 let a = args[j];
                 w.writeText(this.buildArgs(a, j)).newLine();
             }
-            this.buildRunNetiveFunc(w, f, args.slice(0, i));
+            this.buildRunNetiveFunc(w, f, args.slice(0, i), returnType);
             nextFunc = () => {
                 w.writeRightBracket().writeText("else if(");
             };
@@ -217,13 +232,13 @@ class ClassEmitter {
             w.writeText("JSValue " + this.functionName(f) + "(JSContext* ctx, JSValueConst this_val,int argc, JSValueConst* argv)").newLine();
             w.writeLeftBracket().newLine();
             let next = () => { w.writeText(""); };
-            this.buildFuncWithArgs(w, f, f.args);
+            this.buildFuncWithArgs(w, f, f.args, f.returnType);
             w.newLine();
-            if (f.othersArgs) {
+            if (f.override) {
                 next = () => { w.writeRightBracket().writeText("else "); };
-                for (let args of f.othersArgs) {
+                for (let args of f.override) {
                     next();
-                    this.buildFuncWithArgs(w, f, args);
+                    this.buildFuncWithArgs(w, f, args.args, args.returnType);
                     w.newLine();
                 }
             }
@@ -247,10 +262,21 @@ class ClassEmitter {
             let nativeName = this.data.name;
             if (this.data.nativeName)
                 nativeName = this.data.nativeName;
-            w.writeText(nativeName + " *native = js_to_native_object<" + nativeName + ">(ctx, this_val);").newLine();
-            w.writeText("auto ret=native->" + g.get + "();").newLine();
-            w.writeText("return ").writeText(this.buildReturn(g.type)).newLine();
-            w.writeRightBracket().newLine();
+            let nameEnd = "()";
+            if (!g.get.isFunc) {
+                nameEnd = "";
+            }
+            if (g.isStatic) {
+                w.writeText("auto ret=" + nativeName + "::" + g.get.name + nameEnd + ";").newLine();
+                w.writeText("return ").writeText(this.buildReturn(g.type)).newLine();
+                w.writeRightBracket().newLine();
+            }
+            else {
+                w.writeText(nativeName + " *native = js_to_native_object<" + nativeName + ">(ctx, this_val);").newLine();
+                w.writeText("auto ret=native->" + g.get.name + nameEnd + ";").newLine();
+                w.writeText("return ").writeText(this.buildReturn(g.type)).newLine();
+                w.writeRightBracket().newLine();
+            }
         }
         w.newLine();
         if (g.set) {
@@ -260,10 +286,23 @@ class ClassEmitter {
             if (this.data.nativeName)
                 nativeName = this.data.nativeName;
             w.writeText(g.type.getFunc("val", 0)).newLine();
-            w.writeText(nativeName + " *native = js_to_native_object<" + nativeName + ">(ctx, this_val);").newLine();
-            w.writeText("native->" + g.set + "(n0);").newLine();
-            w.writeText("return JS_UNDEFINED;").newLine();
-            w.writeRightBracket().newLine();
+            if (g.isStatic) {
+                if (g.set.isFunc)
+                    w.writeText(nativeName + "::" + g.set.name + "(n0);").newLine();
+                else
+                    w.writeText(nativeName + "::" + g.set.name + "=n0;").newLine();
+                w.writeText("return JS_UNDEFINED;").newLine();
+                w.writeRightBracket().newLine();
+            }
+            else {
+                w.writeText(nativeName + " *native = js_to_native_object<" + nativeName + ">(ctx, this_val);").newLine();
+                if (g.set.isFunc)
+                    w.writeText("native->" + g.set.name + "(n0);").newLine();
+                else
+                    w.writeText("native->" + g.set.name + "=n0;").newLine();
+                w.writeText("return JS_UNDEFINED;").newLine();
+                w.writeRightBracket().newLine();
+            }
         }
         w.newLine();
     }
@@ -282,9 +321,15 @@ class ClassEmitter {
     ctorName() {
         return "js_" + this.data.name + "_constructor";
     }
-    classId() {
-        return this.data.nativeName + "::GetTypeInfoStatic()->bindingId";
+    finalizerName() {
+        return "js_" + this.data.name + "_finalizer";
     }
+    // protected classId() {
+    //     if(this.data.finalizer=="default_finalizer")
+    //         return this.data.nativeName + "::GetTypeInfoStatic()->bindingId";
+    //     return "js_"+this.data.nativeName+"_id";
+    //     return 
+    // }
     /**
      * 创建参数的赋值语句 如:int n0=js_toInt32(ctx,obj);
      * @param a
@@ -343,6 +388,10 @@ class ClassEmitter {
         let nativeName = this.data.nativeName;
         let ctorFunc = " native=new " + nativeName + "(jsGetContext(ctx)";
         let next = ",";
+        if (this.data.finalizer != "default_finalizer") {
+            ctorFunc = " native=new " + nativeName + "(";
+            next = "";
+        }
         let idx = 0;
         if (args) {
             for (let a of args) {
@@ -409,29 +458,50 @@ class ClassEmitter {
      * 创建本地函数调用语句，包括push入栈操作
      * @param f
      */
-    buildNativeFunc(w, f, args) {
-        if (f.returnType) {
+    buildNativeFunc(w, f, args, returnType) {
+        if (returnType) {
             w.writeText("auto ret=");
         }
-        w.writeText("native->" + f.nativeName + "(");
-        let next = "";
-        let argCount = args.length;
-        for (let i = 0; i < argCount; i++) {
-            w.writeText(next);
-            let ref = "";
-            if (args[i].ref)
-                ref = "*";
-            w.writeText(ref + "n" + i);
-            next = ",";
+        if (!this.buildOprFunc(w, f)) {
+            w.writeText("native->" + f.nativeName + "(");
+            let next = "";
+            let argCount = args.length;
+            for (let i = 0; i < argCount; i++) {
+                w.writeText(next);
+                let ref = "";
+                if (args[i].ref)
+                    ref = "*";
+                w.writeText(ref + "n" + i);
+                next = ",";
+            }
+            next = ");";
+            w.writeText(next).newLine();
         }
-        next = ");";
-        w.writeText(next).newLine();
-        if (f.returnType) {
-            w.writeText("return ").writeText(this.buildReturn(f.returnType)).newLine();
+        if (returnType) {
+            w.writeText("return ").writeText(this.buildReturn(returnType)).newLine();
         }
         else {
             w.writeText("return JS_UNDEFINED;").newLine();
         }
+    }
+    buildOprFunc(w, f) {
+        let ret = false;
+        let oprMaps = {
+            ["oprAdd"]: "+",
+            ["oprSub"]: "-",
+            ["oprMult"]: "*",
+            ["oprDiv"]: "/",
+            ["oprAddTo"]: "+=",
+            ["oprSubTo"]: "-=",
+            ["oprMultTo"]: "*=",
+            ["oprDivTo"]: "/=",
+        };
+        ret = oprMaps[f.name] != undefined;
+        if (ret) {
+            let op = oprMaps[f.name];
+            w.writeText("*native" + op + "n0;").newLine();
+        }
+        return ret;
     }
 }
 exports.ClassEmitter = ClassEmitter;

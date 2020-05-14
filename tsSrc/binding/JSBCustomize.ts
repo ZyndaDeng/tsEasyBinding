@@ -23,6 +23,21 @@ export function JSBNativeName(arg:INativeName,node:ts.Node){
     }
 }
 
+export function JSBGetSet(node:ts.Node){
+    let jsDocTags=ts.getJSDocTags(node);
+    if(jsDocTags){
+        for(let t of jsDocTags){
+            if(t.tagName.text=="GetSet"){
+                let comment=t.comment?.trim();
+                if(comment){
+                    return comment;
+                }          
+                break;
+            }
+        }
+    }
+}
+
 export function JSBRefArgs(node:ts.Node){
     let jsDocTags=ts.getJSDocTags(node);
     if(jsDocTags){

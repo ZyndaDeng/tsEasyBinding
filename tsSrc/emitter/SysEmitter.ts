@@ -140,7 +140,19 @@ export class SysEmitter {
         let arr = this.config.packages;
 
         let idx = 0;
+        let process=new Array<Array<BaseBindingData>>();
         for (let a of arr) {
+            this.processData=[];//.splice(0);
+            let sf = this.getSourceFile(a.tsFiles);
+            for (let n of sf) {
+                this.readSourceFile(n);
+            }
+            process.push(this.processData);
+        }
+        
+        for(let i=0;i<arr.length;i++){
+            let a=arr[i];
+            let pData=process[i];
             this.processData.splice(0);
             let sf = this.getSourceFile(a.tsFiles);
             for (let n of sf) {
@@ -149,7 +161,7 @@ export class SysEmitter {
 
             let writter = new Writter(a.includeStr).newLine();
             let emitters = new Array<Emitter>();
-            for (let d of this.processData) {
+            for (let d of pData) {
                 emitters.push(CreateEmitter(d, writter));
             }
             for (let e of emitters) {

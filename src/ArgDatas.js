@@ -90,7 +90,7 @@ class NumberArg extends ArgDataBase {
         return "JS_IsNumber(" + val + ")";
     }
     getFunc(val, idx) {
-        return "double  n" + idx + "= JS_VALUE_GET_FLOAT64(" + val + ");";
+        return "double  n" + idx + "=0.0; JS_ToFloat64(ctx,&n" + idx + "," + val + ");";
     }
     setFunc() {
         return "JS_NewFloat64(ctx,ret);";
@@ -160,7 +160,7 @@ class DefaultTypeArg extends ArgDataBase {
         this.type = p.getText();
     }
     checkFunc(val) {
-        return "js_is_native(ctx," + val + ",js_" + this.type + "_id)";
+        return "js_is_native(ctx," + val + ",\"" + this.type + "\")";
     }
     getFunc(val, idx) {
         return this.type + " n" + idx + "= js_to_" + this.type + "(ctx, " + val + ");";
@@ -176,11 +176,9 @@ class NativeArg extends ArgDataBase {
         this.type = p.getText();
     }
     checkFunc(val) {
-        var _a;
-        let classId = (_a = JSBClass_1.JSBClass.classes[this.type]) === null || _a === void 0 ? void 0 : _a.classId;
-        if (!classId)
-            classId = this.type + "::GetTypeInfoStatic()->bindingId";
-        return "js_is_native(ctx," + val + "," + classId + ")";
+        // let classId=JSBClass.classes[this.type]?.classId;
+        // if(!classId)classId=this.type + "::GetTypeInfoStatic()->bindingId";
+        return "js_is_native(ctx," + val + ",\"" + this.type + "\")";
     }
     getFunc(val, idx) {
         return this.type + "* n" + idx + "=js_to_native_object<" + this.type + ">(ctx," + val + ");";

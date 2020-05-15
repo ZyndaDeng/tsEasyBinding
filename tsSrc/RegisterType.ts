@@ -201,7 +201,7 @@ export function RegisterType() {
             this.type = "VariantMap";
         }
         checkFunc(val: string): string {
-            return "js_is_native(ctx," + val + ",js_"+ this.type+"_id)";
+            return "js_is_native(ctx," + val + ",\""+ this.type+"\")";
         }
         getFunc(val: string,idx: number): string {
             return "VariantMap n" + idx + "; js_object_to_VariantMap(ctx, " + val + ",n" + idx + ");"
@@ -218,7 +218,7 @@ export function RegisterType() {
             this.type = "Component";
         }
         checkFunc(val: string): string {
-            return "js_is_native(ctx," + val + ","+ this.type+"::GetTypeInfoStatic()->bindingId)";
+            return "js_is_native(ctx," + val + ",\""+ this.type+"\")";
         }
         getFunc(val: string,idx:number): string {
            
@@ -239,7 +239,7 @@ export function RegisterType() {
             this.type = "Resource";
         }
         checkFunc(val: string): string {
-            return "js_is_native(ctx," + val + ","+ this.type+"::GetTypeInfoStatic()->bindingId)";
+            return "js_is_native(ctx," + val + ",\""+ this.type+"\")";
         }
         getFunc(val: string,idx:number): string {
            
@@ -257,7 +257,7 @@ export function RegisterType() {
             this.type = "UIElement";
         }
         checkFunc(val: string): string {
-            return "js_is_native(ctx," + val + ","+ this.type+"::GetTypeInfoStatic()->bindingId)";
+            return "js_is_native(ctx," + val + ",\""+ this.type+"\")";
         }
         getFunc(val: string,idx:number): string {
            

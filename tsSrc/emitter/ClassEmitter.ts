@@ -198,8 +198,8 @@ export class ClassEmitter implements Emitter {
     /**创建带特定函数的条件语句 */
     protected buildFuncWithArgs(w: Writter, f: MethodData, args: ArgData[],returnType:ArgData|undefined) {
 
-        w.writeText("if(");
-        let next = "";
+        
+        
 
         let minCount = args.length;//最少参数个数
         for (let i = args.length - 1; i >= 0; i--) {
@@ -209,6 +209,8 @@ export class ClassEmitter implements Emitter {
                 break;
             }
         }
+        w.writeText("if(argc>="+minCount+"");
+        let next = "&&";
         if (args.length > 0) {
             let idx = 0;
             for (let a of args) {
@@ -217,7 +219,7 @@ export class ClassEmitter implements Emitter {
                 idx++;
             }
         } else {
-            w.writeText("argc==0");
+            //w.writeText("argc==0");
         }
         w.writeText(")").writeLeftBracket().newLine();
         let nextFunc = () => {

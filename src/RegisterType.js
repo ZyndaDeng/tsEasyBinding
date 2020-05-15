@@ -184,7 +184,7 @@ function RegisterType() {
             this.type = "VariantMap";
         }
         checkFunc(val) {
-            return "js_is_native(ctx," + val + ",js_" + this.type + "_id)";
+            return "js_is_native(ctx," + val + ",\"" + this.type + "\")";
         }
         getFunc(val, idx) {
             return "VariantMap n" + idx + "; js_object_to_VariantMap(ctx, " + val + ",n" + idx + ");";
@@ -200,7 +200,7 @@ function RegisterType() {
             this.type = "Component";
         }
         checkFunc(val) {
-            return "js_is_native(ctx," + val + "," + this.type + "::GetTypeInfoStatic()->bindingId)";
+            return "js_is_native(ctx," + val + ",\"" + this.type + "\")";
         }
         getFunc(val, idx) {
             return this.type + "* n" + idx + "=js_to_native_object<" + this.type + ">(ctx," + val + ");";
@@ -218,7 +218,7 @@ function RegisterType() {
             this.type = "Resource";
         }
         checkFunc(val) {
-            return "js_is_native(ctx," + val + "," + this.type + "::GetTypeInfoStatic()->bindingId)";
+            return "js_is_native(ctx," + val + ",\"" + this.type + "\")";
         }
         getFunc(val, idx) {
             return this.type + "* n" + idx + "=js_to_native_object<" + this.type + ">(ctx," + val + ");";
@@ -234,7 +234,7 @@ function RegisterType() {
             this.type = "UIElement";
         }
         checkFunc(val) {
-            return "js_is_native(ctx," + val + "," + this.type + "::GetTypeInfoStatic()->bindingId)";
+            return "js_is_native(ctx," + val + ",\"" + this.type + "\")";
         }
         getFunc(val, idx) {
             return this.type + "* n" + idx + "=js_to_native_object<" + this.type + ">(ctx," + val + ");";

@@ -206,7 +206,7 @@ function RegisterType() {
             return this.type + "* n" + idx + "=js_to_native_object<" + this.type + ">(ctx," + val + ");";
         }
         setFunc() {
-            return `js_push_native_object(ctx,ret,ret->GetTypeInfo()->bindingId);`;
+            return `js_push_urho3d_object(ctx,ret);`;
         }
     }
     ArgDatas_1.registerArgs["ComponentMap[K]"] = ComponentMapArg;
@@ -224,7 +224,7 @@ function RegisterType() {
             return this.type + "* n" + idx + "=js_to_native_object<" + this.type + ">(ctx," + val + ");";
         }
         setFunc() {
-            return `js_push_native_object(ctx,ret,ret->GetTypeInfo()->bindingId);`;
+            return `js_push_urho3d_object(ctx,ret);`;
         }
     }
     ArgDatas_1.registerArgs["ResourceMap[K]"] = ResourceMapArg;
@@ -240,7 +240,7 @@ function RegisterType() {
             return this.type + "* n" + idx + "=js_to_native_object<" + this.type + ">(ctx," + val + ");";
         }
         setFunc() {
-            return `js_push_native_object(ctx,ret,ret->GetTypeInfo()->bindingId);`;
+            return `js_push_urho3d_object(ctx,ret);`;
         }
     }
     ArgDatas_1.registerArgs["UIElementMap[K]"] = UIElementMapArg;
@@ -290,7 +290,7 @@ function RegisterCustomize() {
 		if (argc == 1) {
 			Node* native = js_to_native_object<Node>(ctx, this_val);
 			SharedPtr<JsComponent> com(new JsComponent(jsGetContext(ctx)));
-			auto ret = com->createInstance({ctx,argv[0]});
+			auto ret = com->createInstance({ctx,JS_DupValue(ctx, argv[0])});
 			native->AddComponent(com, 0, REPLICATED);
 			return ret.v;
 		}

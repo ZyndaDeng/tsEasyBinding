@@ -191,7 +191,10 @@ export class NativeArg extends ArgDataBase {
     }
     setFunc(): string {
         let classId=JSBClass.classes[this.type]?.classId;
-        if(classId.endsWith("->bindingId"))classId="ret->GetTypeInfo()->bindingId";//this.type + "::GetTypeInfoStatic()->bindingId";
+        if(classId.endsWith("->bindingId")){
+            //classId="ret->GetTypeInfo()->bindingId";
+            return `js_push_urho3d_object(ctx,ret);`
+        }
         
         return `js_push_native_object(ctx,ret,` +classId  + `);`
     }

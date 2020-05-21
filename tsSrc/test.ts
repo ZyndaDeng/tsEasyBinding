@@ -46,5 +46,6 @@ function build(arr:Array<number>){
 }
 
 let arr=[-3,-4,-2,-6,-7,0];
+arr.sort()
 let max=build(arr);
 console.log("最大数组是:" + max.start+","+max.end);

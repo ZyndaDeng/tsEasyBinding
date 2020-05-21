@@ -240,7 +240,7 @@ export class ClassEmitter implements Emitter {
             }
         }
         w.writeRightBracket().writeText("else").writeLeftBracket().newLine();
-        w.writeText(`JS_ThrowTypeError(ctx, "invalid argument value: ` + args.length + `");`).newLine().writeRightBracket();
+        w.writeText( `JS_ThrowTypeError(ctx, "`+this.functionName(f)+` invalid argument value: ` + args.length + `");`).newLine().writeRightBracket();
     }
 
     /**
@@ -267,7 +267,7 @@ export class ClassEmitter implements Emitter {
             }
             //next = "}";
             w.writeRightBracket().newLine();
-            w.writeText(`JS_ThrowTypeError(ctx, "arguments value not match");`).newLine();
+            w.writeText( `JS_ThrowTypeError(ctx, "`+this.functionName(f)+` arguments value not match");`).newLine();
             w.writeRightBracket().newLine();
         }
 
@@ -437,7 +437,7 @@ export class ClassEmitter implements Emitter {
             next = ");";
             ctorFunc += next;
         } else {
-            ctorFunc = `JS_ThrowTypeError(ctx, "obj can not new");`
+            ctorFunc =  `JS_ThrowTypeError(ctx, "`+this.ctorName()+` obj can not new");`
         }
         w.writeText(ctorFunc).newLine();
     }
@@ -484,7 +484,7 @@ export class ClassEmitter implements Emitter {
             }
         }
         w.writeRightBracket().writeText("else").writeLeftBracket().newLine();
-        w.writeText(`JS_ThrowTypeError(ctx, "invalid argument value: ` + args.length + `");`).newLine().writeRightBracket();
+        w.writeText(`JS_ThrowTypeError(ctx, "`+this.ctorName()+` invalid argument value: ` + args.length + `");`).newLine().writeRightBracket();
         w.newLine();
     }
     /**

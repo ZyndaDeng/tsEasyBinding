@@ -170,6 +170,38 @@ class DefaultTypeArg extends ArgDataBase {
     }
 }
 exports.DefaultTypeArg = DefaultTypeArg;
+class DefaultRefTypeArg extends ArgDataBase {
+    constructor(p, def) {
+        super(p, def);
+        this.type = p.getText();
+    }
+    checkFunc(val) {
+        return "js_is_native(ctx," + val + ",\"" + this.type + "\")";
+    }
+    getFunc(val, idx) {
+        return this.type + " n" + idx + "= js_to_ref<" + this.type + ">(ctx, " + val + ",js_" + this.type + "_id);";
+    }
+    setFunc() {
+        return "js_push_copy<" + this.type + ">(ctx,ret,js_" + this.type + "_id);";
+    }
+}
+exports.DefaultRefTypeArg = DefaultRefTypeArg;
+class DefaultPtrTypeArg extends ArgDataBase {
+    constructor(p, def) {
+        super(p, def);
+        this.type = p.getText();
+    }
+    checkFunc(val) {
+        return "js_is_native(ctx," + val + ",\"" + this.type + "\")";
+    }
+    getFunc(val, idx) {
+        return this.type + "* n" + idx + "= js_to_ptr<" + this.type + ">(ctx, " + val + ",js_" + this.type + "_id);";
+    }
+    setFunc() {
+        return "js_push_ptr<" + this.type + ">(ctx,ret,js_" + this.type + "_id);";
+    }
+}
+exports.DefaultPtrTypeArg = DefaultPtrTypeArg;
 class NativeArg extends ArgDataBase {
     constructor(p, def) {
         super(p, def);

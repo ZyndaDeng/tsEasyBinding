@@ -145,6 +145,13 @@ function RegisterType() {
     ArgDatas_1.registerArgs["Polyhedron"] = ArgDatas_1.DefaultTypeArg;
     ArgDatas_1.registerArgs["Sphere"] = ArgDatas_1.DefaultTypeArg;
     ArgDatas_1.registerArgs["Controls"] = ArgDatas_1.DefaultTypeArg;
+    ArgDatas_1.registerArgs["Skeleton"] = ArgDatas_1.DefaultRefTypeArg;
+    ArgDatas_1.registerArgs["BiasParameters"] = ArgDatas_1.DefaultRefTypeArg;
+    ArgDatas_1.registerArgs["CascadeParameters"] = ArgDatas_1.DefaultRefTypeArg;
+    ArgDatas_1.registerArgs["FocusParameters"] = ArgDatas_1.DefaultRefTypeArg;
+    ArgDatas_1.registerArgs["PhysicsRaycastResult"] = ArgDatas_1.DefaultRefTypeArg;
+    ArgDatas_1.registerArgs["Serializer"] = ArgDatas_1.DefaultPtrTypeArg;
+    ArgDatas_1.registerArgs["Deserializer"] = ArgDatas_1.DefaultPtrTypeArg;
     //registerArgs["Model"] = DefaultTypeArg
     class StringVectorArg extends ArgDatas_1.ArgDataBase {
         constructor(p, def) {
@@ -162,6 +169,22 @@ function RegisterType() {
         }
     }
     ArgDatas_1.registerArgs["StringVector"] = StringVectorArg;
+    class VectorBufferArg extends ArgDatas_1.ArgDataBase {
+        constructor(p, def) {
+            super(p, def);
+            this.type = "VectorBuffer";
+        }
+        checkFunc(val) {
+            return "js_is_native(ctx," + val + ",\"" + this.type + "\")";
+        }
+        getFunc(val, idx) {
+            return "VectorBuffer n" + idx + "; js_to_buffer(ctx," + val + ",n" + idx + ");";
+        }
+        setFunc() {
+            return "js_push_vectorbuffer(ctx,ret);";
+        }
+    }
+    ArgDatas_1.registerArgs["VectorBuffer"] = VectorBufferArg;
     class VariantArg extends ArgDatas_1.ArgDataBase {
         constructor(p, def) {
             super(p, def);

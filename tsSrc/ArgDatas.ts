@@ -173,6 +173,38 @@ export class DefaultTypeArg extends ArgDataBase{
     }
 }
 
+export class DefaultRefTypeArg extends ArgDataBase{
+    constructor(p: ts.TypeNode, def?: boolean) {
+        super(p, def);
+        this.type = p.getText();
+    }
+    checkFunc(val: string): string {
+        return "js_is_native(ctx," + val + ",\""+ this.type+"\")";
+    }
+    getFunc(val: string,idx:number): string {
+        return this.type+" n" + idx + "= js_to_ref<"+this.type+">(ctx, " + val + ",js_"+this.type+"_id);"
+    }
+    setFunc(): string {
+        return "js_push_copy<"+this.type+">(ctx,ret,js_"+this.type+"_id);"
+    }
+}
+
+export class DefaultPtrTypeArg extends ArgDataBase{
+    constructor(p: ts.TypeNode, def?: boolean) {
+        super(p, def);
+        this.type = p.getText();
+    }
+    checkFunc(val: string): string {
+        return "js_is_native(ctx," + val + ",\""+ this.type+"\")";
+    }
+    getFunc(val: string,idx:number): string {
+        return this.type+"* n" + idx + "= js_to_ptr<"+this.type+">(ctx, " + val + ",js_"+this.type+"_id);"
+    }
+    setFunc(): string {
+        return "js_push_ptr<"+this.type+">(ctx,ret,js_"+this.type+"_id);"
+    }
+}
+
 
 
 export class NativeArg extends ArgDataBase {

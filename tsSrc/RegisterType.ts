@@ -1,5 +1,5 @@
 import * as ts from "typescript"
-import { ArgDataBase, registerArgs, DefaultTypeArg, StringArg } from "./ArgDatas";
+import { ArgDataBase, registerArgs, DefaultTypeArg, StringArg, DefaultRefTypeArg, DefaultPtrTypeArg } from "./ArgDatas";
 import { customize } from "./emitter/SysEmitter";
 
 export function RegisterType() {
@@ -157,6 +157,13 @@ export function RegisterType() {
     registerArgs["Polyhedron"] = DefaultTypeArg
     registerArgs["Sphere"] = DefaultTypeArg
     registerArgs["Controls"] = DefaultTypeArg
+    registerArgs["Skeleton"] = DefaultRefTypeArg
+    registerArgs["BiasParameters"] = DefaultRefTypeArg
+    registerArgs["CascadeParameters"] = DefaultRefTypeArg
+    registerArgs["FocusParameters"] = DefaultRefTypeArg
+    registerArgs["PhysicsRaycastResult"] = DefaultRefTypeArg
+    registerArgs["Serializer"]=DefaultPtrTypeArg
+    registerArgs["Deserializer"]=DefaultPtrTypeArg
     //registerArgs["Model"] = DefaultTypeArg
 
     class StringVectorArg extends ArgDataBase {
@@ -175,6 +182,23 @@ export function RegisterType() {
         }
     }
     registerArgs["StringVector"]=StringVectorArg;
+
+    class VectorBufferArg extends ArgDataBase {
+        constructor(p: ts.TypeNode, def?: boolean) {
+            super(p, def);
+            this.type = "VectorBuffer";
+        }
+        checkFunc(val: string): string {
+            return "js_is_native(ctx," + val + ",\""+ this.type+"\")";
+        }
+        getFunc(val: string,idx:number): string {
+            return "VectorBuffer n"+idx+"; js_to_buffer(ctx,"+val+",n"+idx+");"
+        }
+        setFunc(): string {
+                return "js_push_vectorbuffer(ctx,ret);"    
+        }
+    }
+    registerArgs["VectorBuffer"]=VectorBufferArg;
 
     class VariantArg extends ArgDataBase {
         constructor(p: ts.TypeNode, def?: boolean) {

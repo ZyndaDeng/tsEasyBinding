@@ -1,6 +1,7 @@
 import * as ts from "typescript"
 import { ArgDataBase, registerArgs, DefaultTypeArg, StringArg, DefaultRefTypeArg, DefaultPtrTypeArg } from "./ArgDatas";
 import { customize } from "./emitter/SysEmitter";
+import { JSBClass } from "./binding/JSBClass";
 
 export function RegisterType() {
 
@@ -9,7 +10,7 @@ export function RegisterType() {
             super(p, def);
             this.type = "String";
         }
-        getFunc(val:string,idx: number): string {
+        getFunc(val: string, idx: number): string {
             return "String n" + idx + "= JS_ToCString(ctx, " + val + ");"
         }
         setFunc(): string {
@@ -141,7 +142,7 @@ export function RegisterType() {
     registerArgs["Rect"] = DefaultTypeArg
     //registerArgs["RectLike"] = RectArg
 
-    
+
     registerArgs["IntRect"] = DefaultTypeArg
     registerArgs["Matrix2"] = DefaultTypeArg
     registerArgs["Matrix3"] = DefaultTypeArg
@@ -162,8 +163,8 @@ export function RegisterType() {
     registerArgs["CascadeParameters"] = DefaultRefTypeArg
     registerArgs["FocusParameters"] = DefaultRefTypeArg
     registerArgs["PhysicsRaycastResult"] = DefaultRefTypeArg
-    registerArgs["Serializer"]=DefaultPtrTypeArg
-    registerArgs["Deserializer"]=DefaultPtrTypeArg
+    registerArgs["Serializer"] = DefaultPtrTypeArg
+    registerArgs["Deserializer"] = DefaultPtrTypeArg
     //registerArgs["Model"] = DefaultTypeArg
 
     class StringVectorArg extends ArgDataBase {
@@ -174,14 +175,14 @@ export function RegisterType() {
         checkFunc(val: string): string {
             return "JS_IsArray(ctx," + val + ")";
         }
-        getFunc(val: string,idx:number): string {
-            return "StringVector n"+idx+"; js_to_normal_array(ctx,"+val+",n"+idx+",JS_ToCString);"
+        getFunc(val: string, idx: number): string {
+            return "StringVector n" + idx + "; js_to_normal_array(ctx," + val + ",n" + idx + ",JS_ToCString);"
         }
         setFunc(): string {
-                return "js_push_StringVector(ctx,ret);"    
+            return "js_push_StringVector(ctx,ret);"
         }
     }
-    registerArgs["StringVector"]=StringVectorArg;
+    registerArgs["StringVector"] = StringVectorArg;
 
     class VectorBufferArg extends ArgDataBase {
         constructor(p: ts.TypeNode, def?: boolean) {
@@ -189,16 +190,16 @@ export function RegisterType() {
             this.type = "VectorBuffer";
         }
         checkFunc(val: string): string {
-            return "js_is_native(ctx," + val + ",\""+ this.type+"\")";
+            return "js_is_native(ctx," + val + ",js_" + this.type + "_id)";
         }
-        getFunc(val: string,idx:number): string {
-            return "VectorBuffer n"+idx+"; js_to_buffer(ctx,"+val+",n"+idx+");"
+        getFunc(val: string, idx: number): string {
+            return "VectorBuffer n" + idx + "; js_to_buffer(ctx," + val + ",n" + idx + ");"
         }
         setFunc(): string {
-                return "js_push_vectorbuffer(ctx,ret);"    
+            return "js_push_vectorbuffer(ctx,ret);"
         }
     }
-    registerArgs["VectorBuffer"]=VectorBufferArg;
+    registerArgs["VectorBuffer"] = VectorBufferArg;
 
     class VariantArg extends ArgDataBase {
         constructor(p: ts.TypeNode, def?: boolean) {
@@ -208,7 +209,7 @@ export function RegisterType() {
         checkFunc(val: string): string {
             return "!JS_IsUndefined(" + val + ")";
         }
-        getFunc(val: string,idx: number): string {
+        getFunc(val: string, idx: number): string {
 
             return "Variant n" + idx + "; js_to_Variant(ctx, " + val + ",n" + idx + ");"
 
@@ -225,9 +226,9 @@ export function RegisterType() {
             this.type = "VariantMap";
         }
         checkFunc(val: string): string {
-            return "js_is_native(ctx," + val + ",\""+ this.type+"\")";
+            return "js_is_native(ctx," + val + ",js_" + this.type + "_id)";
         }
-        getFunc(val: string,idx: number): string {
+        getFunc(val: string, idx: number): string {
             return "VariantMap n" + idx + "; js_object_to_VariantMap(ctx, " + val + ",n" + idx + ");"
         }
         setFunc(): string {
@@ -242,20 +243,22 @@ export function RegisterType() {
             this.type = "Component";
         }
         checkFunc(val: string): string {
-            return "js_is_native(ctx," + val + ",\""+ this.type+"\")";
+            let classId = JSBClass.classes[this.type]?.classId;
+            if (!classId) classId = this.type + "::GetTypeInfoStatic()->bindingId";
+            return "js_is_native(ctx," + val + "," + classId + ")";
         }
-        getFunc(val: string,idx:number): string {
-           
+        getFunc(val: string, idx: number): string {
+
             return this.type + "* n" + idx + "=js_to_native_object<" + this.type + ">(ctx," + val + ");"
         }
         setFunc(): string {
             return `js_push_urho3d_object(ctx,ret);`
         }
     }
-    
+
     registerArgs["ComponentMap[K]"] = ComponentMapArg
     registerArgs["Component"] = ComponentMapArg
-    registerArgs["K"]=StringArg;
+    registerArgs["K"] = StringArg;
 
     class ResourceMapArg extends ArgDataBase {
         constructor(p: ts.TypeNode, def?: boolean) {
@@ -263,10 +266,12 @@ export function RegisterType() {
             this.type = "Resource";
         }
         checkFunc(val: string): string {
-            return "js_is_native(ctx," + val + ",\""+ this.type+"\")";
+            let classId = JSBClass.classes[this.type]?.classId;
+            if (!classId) classId = this.type + "::GetTypeInfoStatic()->bindingId";
+            return "js_is_native(ctx," + val + "," + classId + ")";
         }
-        getFunc(val: string,idx:number): string {
-           
+        getFunc(val: string, idx: number): string {
+
             return this.type + "* n" + idx + "=js_to_native_object<" + this.type + ">(ctx," + val + ");"
         }
         setFunc(): string {
@@ -281,10 +286,12 @@ export function RegisterType() {
             this.type = "UIElement";
         }
         checkFunc(val: string): string {
-            return "js_is_native(ctx," + val + ",\""+ this.type+"\")";
+            let classId = JSBClass.classes[this.type]?.classId;
+            if (!classId) classId = this.type + "::GetTypeInfoStatic()->bindingId";
+            return "js_is_native(ctx," + val + "," + classId + ")";
         }
-        getFunc(val: string,idx:number): string {
-           
+        getFunc(val: string, idx: number): string {
+
             return this.type + "* n" + idx + "=js_to_native_object<" + this.type + ">(ctx," + val + ");"
         }
         setFunc(): string {
@@ -302,8 +309,8 @@ export function RegisterType() {
         checkFunc(val: string): string {
             return "JS_IsObject(" + val + ")";
         }
-        getFunc(val: string,idx:number): string {
-           throw new Error("not defined");
+        getFunc(val: string, idx: number): string {
+            throw new Error("not defined");
         }
         setFunc(): string {
             return "js_push_TouchState(ctx,ret);"
@@ -319,9 +326,9 @@ export function RegisterType() {
         checkFunc(val: string): string {
             return "JS_IsObject(" + val + ")";
         }
-        getFunc(val: string,idx: number): string {
+        getFunc(val: string, idx: number): string {
 
-            return "SharedPtr< JsDelegate> n"+idx+"(new JsDelegate(jsGetContext(ctx)));void* ptrArg = duk_get_heapptr(ctx, "+idx+");NativeRetainJs(ctx, ptrArg, n"+idx+");"
+            return "SharedPtr< JsDelegate> n" + idx + "(new JsDelegate(jsGetContext(ctx)));void* ptrArg = duk_get_heapptr(ctx, " + idx + ");NativeRetainJs(ctx, ptrArg, n" + idx + ");"
         }
         setFunc(): string {
             throw new Error("not defined");
@@ -330,9 +337,9 @@ export function RegisterType() {
     registerArgs["ILogicComponent"] = ILogicComponentArg
 }
 
-export function RegisterCustomize(){
+export function RegisterCustomize() {
 
-    customize["Node_ScriptComponent"]=`
+    customize["Node_ScriptComponent"] = `
     JSValue js_Node_ScriptComponent(JSContext* ctx, JSValueConst this_val, int argc, JSValueConst* argv)
 {
 	if (JS_IsConstructor(ctx,argv[0])

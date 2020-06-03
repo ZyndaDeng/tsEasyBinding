@@ -3,6 +3,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const BindingData_1 = require("../BindingData");
 class JSBModule extends BindingData_1.BaseBindingData {
     constructor(name) {
+        if (name[0] == "\"") {
+            name = name.replace("\"", "");
+            name = name.replace("\"", "");
+        }
         super(name);
         this.bindingType = "module";
         this.members_ = [];
@@ -15,23 +19,6 @@ class JSBModule extends BindingData_1.BaseBindingData {
         m.parent = this;
         this.members_.push(m);
     }
-    // removeMember(arg: BaseBindingData | string) {
-    //     if (typeof arg == "string") {
-    //         let m = this.members_[arg];
-    //         if (m) {
-    //             m.parent = undefined;
-    //             delete this.members_[arg];
-    //         }
-    //     } else {
-    //         let m = this.members_[arg.name];
-    //         if (m && m == arg) {
-    //             m.parent = undefined;
-    //             delete this.members_[arg.name];
-    //         } else {
-    //             throw new Error("that is not the member of this module");
-    //         }
-    //     }
-    // }
     get members() {
         return this.members_;
     }

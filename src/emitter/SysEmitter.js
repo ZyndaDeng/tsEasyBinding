@@ -12,10 +12,11 @@ const Sys_1 = require("../Sys");
 const ts = __importStar(require("typescript"));
 const writter_1 = require("../writter");
 const EmitterFactory_1 = require("./EmitterFactory");
-const JSBModule_1 = require("../binding/JSBModule");
+const JSBNamespace_1 = require("../binding/JSBNamespace");
 const JSBClass_1 = require("../binding/JSBClass");
 const JSBFunction_1 = require("../binding/JSBFunction");
 const JSBVar_1 = require("../binding/JSBVar");
+const JSBModule_1 = require("../binding/JSBModule");
 exports.customize = {};
 exports.enumDefined = new Array();
 class SysEmitter {
@@ -24,6 +25,7 @@ class SysEmitter {
         //this.enumDefined = [];
         this.moduleStack = [];
         this.processData = [];
+        this.isInDeclare = false;
         // this.shouldFirstDefineList = [];
         // this.undefineList = {};
     }
@@ -71,23 +73,37 @@ class SysEmitter {
         return ret;
     }
     readSourceFile(sf) {
-        if (ts.isClassDeclaration(sf) && this.isDeclare(sf)) {
-            let classData = new JSBClass_1.JSBClass(sf);
-            this.addData(classData);
+        if (ts.isClassDeclaration(sf)) {
+            if (this.isDeclare(sf) || this.isInDeclare) {
+                let classData = new JSBClass_1.JSBClass(sf);
+                this.addData(classData);
+            }
         }
-        else if (ts.isFunctionDeclaration(sf) && this.isDeclare(sf)) {
-            let funcData = new JSBFunction_1.JSBFunction(sf);
-            this.addData(funcData);
+        else if (ts.isFunctionDeclaration(sf)) {
+            if (this.isDeclare(sf) || this.isInDeclare) {
+                let funcData = new JSBFunction_1.JSBFunction(sf);
+                this.addData(funcData);
+            }
         }
-        else if (ts.isVariableDeclaration(sf) && this.isDeclare(sf)) {
-            let varData = new JSBVar_1.JSBVar(sf);
-            this.addData(varData);
+        else if (ts.isVariableDeclaration(sf)) {
+            if (this.isDeclare(sf) || this.isInDeclare) {
+                let varData = new JSBVar_1.JSBVar(sf);
+                this.addData(varData);
+            }
         }
         else if (ts.isEnumDeclaration(sf)) {
             exports.enumDefined.push(sf.name.getText());
         }
         else if (ts.isModuleDeclaration(sf)) {
-            let mod = new JSBModule_1.JSBModule(sf.name.getText());
+            let mod = undefined;
+            if (this.isDeclare(sf)) {
+                //因为module和namespace都是ModuleDeclaration 这里只能用不完全正确的规则区分
+                mod = new JSBModule_1.JSBModule(sf.name.getText());
+                this.isInDeclare = true;
+            }
+            else {
+                mod = new JSBNamespace_1.JSBNamespace(sf.name.getText());
+            }
             this.addData(mod);
             this.openModule(mod);
             let body = sf.body;
@@ -97,6 +113,7 @@ class SysEmitter {
                 }
             }
             this.closeModule();
+            this.isInDeclare = false;
         }
     }
     isDeclare(node) {
@@ -141,7 +158,7 @@ class SysEmitter {
                 e.emitDefine();
             }
             writter.newLine();
-            writter.writeText("void " + this.packageName(a) + "(const jsb::Context& ctx)").writeLeftBracket().newLine();
+            writter.writeText("void " + this.packageName(a) + "( jsb::Context& ctx)").writeLeftBracket().newLine();
             for (let e of emitters) {
                 e.emitBinding();
             }

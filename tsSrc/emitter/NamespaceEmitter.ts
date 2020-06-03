@@ -2,11 +2,11 @@
 import { Writter } from "../writter";
 import { Emitter, IExport } from "./Emitter";
 import { CreateEmitter } from "./EmitterFactory";
-import { JSBModule } from "../binding/JSBModule";
+import { JSBNamespace } from "../binding/JSBNamespace";
 
 
 
-export class ModuleEmitter implements Emitter{
+export class NamespaceEmitter implements Emitter{
     
     emitDefine(): void {
         for(let d of this.data.members){
@@ -16,7 +16,7 @@ export class ModuleEmitter implements Emitter{
     }
     emitBinding(): void {
         //this.w.writeOpenModule(this.data.name).newLine();
-        this.w.writeText("jsb::JSBModule& m=ctx.getOrNewModule(\""+this.data.name+"\");").newLine();
+        this.w.writeText("jsb::Value ns=ctx.getOrNewObject(ctx.global(),\""+this.data.name+"\");").newLine();
         for(let d of this.data.members){
             let emitter=CreateEmitter(d,this.w);
             emitter.emitBinding();
@@ -31,10 +31,10 @@ export class ModuleEmitter implements Emitter{
     }
 
     export(name:string,value:string):void{
-        this.w.writeText("m.add(\""+name+"\","+value+");");
+        this.w.writeText("ns.setProperty(\""+name+"\","+value+");");
     }
     
-    constructor(protected data:JSBModule,protected w:Writter){
+    constructor(protected data:JSBNamespace,protected w:Writter){
 
     }
 

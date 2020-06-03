@@ -40,7 +40,7 @@ class ClassEmitter {
      * 创建对象的绑定主函数
      */
     buildMain(w) {
-        w.writeText("jsb::Value " + this.apiName() + "(const jsb::Context& ctx)").newLine().writeLeftBracket().newLine();
+        w.writeText("jsb::Value " + this.apiName() + "( jsb::Context& ctx)").newLine().writeLeftBracket().newLine();
         let funcs = new Array();
         let staticFuncs = new Array();
         let getter = new Array();

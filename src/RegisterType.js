@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const ArgDatas_1 = require("./ArgDatas");
 const SysEmitter_1 = require("./emitter/SysEmitter");
+const JSBClass_1 = require("./binding/JSBClass");
 function RegisterType() {
     class Urho3DStringArg extends ArgDatas_1.ArgDataBase {
         constructor(p, def) {
@@ -175,7 +176,7 @@ function RegisterType() {
             this.type = "VectorBuffer";
         }
         checkFunc(val) {
-            return "js_is_native(ctx," + val + ",\"" + this.type + "\")";
+            return "js_is_native(ctx," + val + ",js_" + this.type + "_id)";
         }
         getFunc(val, idx) {
             return "VectorBuffer n" + idx + "; js_to_buffer(ctx," + val + ",n" + idx + ");";
@@ -207,7 +208,7 @@ function RegisterType() {
             this.type = "VariantMap";
         }
         checkFunc(val) {
-            return "js_is_native(ctx," + val + ",\"" + this.type + "\")";
+            return "js_is_native(ctx," + val + ",js_" + this.type + "_id)";
         }
         getFunc(val, idx) {
             return "VariantMap n" + idx + "; js_object_to_VariantMap(ctx, " + val + ",n" + idx + ");";
@@ -223,7 +224,11 @@ function RegisterType() {
             this.type = "Component";
         }
         checkFunc(val) {
-            return "js_is_native(ctx," + val + ",\"" + this.type + "\")";
+            var _a;
+            let classId = (_a = JSBClass_1.JSBClass.classes[this.type]) === null || _a === void 0 ? void 0 : _a.classId;
+            if (!classId)
+                classId = this.type + "::GetTypeInfoStatic()->bindingId";
+            return "js_is_native(ctx," + val + "," + classId + ")";
         }
         getFunc(val, idx) {
             return this.type + "* n" + idx + "=js_to_native_object<" + this.type + ">(ctx," + val + ");";
@@ -241,7 +246,11 @@ function RegisterType() {
             this.type = "Resource";
         }
         checkFunc(val) {
-            return "js_is_native(ctx," + val + ",\"" + this.type + "\")";
+            var _a;
+            let classId = (_a = JSBClass_1.JSBClass.classes[this.type]) === null || _a === void 0 ? void 0 : _a.classId;
+            if (!classId)
+                classId = this.type + "::GetTypeInfoStatic()->bindingId";
+            return "js_is_native(ctx," + val + "," + classId + ")";
         }
         getFunc(val, idx) {
             return this.type + "* n" + idx + "=js_to_native_object<" + this.type + ">(ctx," + val + ");";
@@ -257,7 +266,11 @@ function RegisterType() {
             this.type = "UIElement";
         }
         checkFunc(val) {
-            return "js_is_native(ctx," + val + ",\"" + this.type + "\")";
+            var _a;
+            let classId = (_a = JSBClass_1.JSBClass.classes[this.type]) === null || _a === void 0 ? void 0 : _a.classId;
+            if (!classId)
+                classId = this.type + "::GetTypeInfoStatic()->bindingId";
+            return "js_is_native(ctx," + val + "," + classId + ")";
         }
         getFunc(val, idx) {
             return this.type + "* n" + idx + "=js_to_native_object<" + this.type + ">(ctx," + val + ");";

@@ -163,7 +163,7 @@ export class DefaultTypeArg extends ArgDataBase{
         this.type = p.getText();
     }
     checkFunc(val: string): string {
-        return "js_is_native(ctx," + val + ",\""+ this.type+"\")";
+        return "js_is_native(ctx," + val + ",js_"+this.type+"_id)";
     }
     getFunc(val: string,idx:number): string {
         return this.type+" n" + idx + "= js_to_"+this.type+"(ctx, " + val + ");"
@@ -179,7 +179,7 @@ export class DefaultRefTypeArg extends ArgDataBase{
         this.type = p.getText();
     }
     checkFunc(val: string): string {
-        return "js_is_native(ctx," + val + ",\""+ this.type+"\")";
+        return "js_is_native(ctx," + val + ",js_"+this.type+"_id)";
     }
     getFunc(val: string,idx:number): string {
         return this.type+" n" + idx + "= js_to_ref<"+this.type+">(ctx, " + val + ",js_"+this.type+"_id);"
@@ -195,7 +195,7 @@ export class DefaultPtrTypeArg extends ArgDataBase{
         this.type = p.getText();
     }
     checkFunc(val: string): string {
-        return "js_is_native(ctx," + val + ",\""+ this.type+"\")";
+        return "js_is_native(ctx," + val + ",js_"+this.type+"_id)";
     }
     getFunc(val: string,idx:number): string {
         return this.type+"* n" + idx + "= js_to_ptr<"+this.type+">(ctx, " + val + ",js_"+this.type+"_id);"
@@ -213,9 +213,9 @@ export class NativeArg extends ArgDataBase {
         this.type = p.getText();
     }
     checkFunc(val: string): string {
-        // let classId=JSBClass.classes[this.type]?.classId;
-        // if(!classId)classId=this.type + "::GetTypeInfoStatic()->bindingId";
-        return "js_is_native(ctx," + val + ",\""+ this.type+"\")";
+        let classId=JSBClass.classes[this.type]?.classId;
+        if(!classId)classId=this.type + "::GetTypeInfoStatic()->bindingId";
+        return "js_is_native(ctx," + val + ","+ classId+")";
     }
     getFunc(val: string,idx:number): string {
        

@@ -54,7 +54,7 @@ export class ClassEmitter implements Emitter {
      * 创建对象的绑定主函数
      */
     protected buildMain(w: Writter) {
-        w.writeText("jsb::Value " + this.apiName() + "(const jsb::Context& ctx)").newLine().writeLeftBracket().newLine();
+        w.writeText("jsb::Value " + this.apiName() + "( jsb::Context& ctx)").newLine().writeLeftBracket().newLine();
 
 
         let funcs = new Array<MethodData>();

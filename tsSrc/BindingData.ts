@@ -1,7 +1,7 @@
 import * as ts from "typescript"
 import { ArgData, buildArgData } from "./ArgDatas";
 
-export type BindingType = "func" | "class" | "module" | "var"
+export type BindingType = "func" | "class" | "module" | "var"|"namespace"
 export interface BindingData {
     bindingType: BindingType;
     getModule(): Array<string> | undefined;
@@ -25,6 +25,11 @@ export abstract class BaseBindingData implements BindingData {
         return ret;
     }
 }
+
+export interface IModule{
+    addMember(m: BaseBindingData):void;
+}
+
 
 
 

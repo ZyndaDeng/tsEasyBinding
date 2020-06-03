@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const EmitterFactory_1 = require("./EmitterFactory");
-class ModuleEmitter {
+class NamespaceEmitter {
     constructor(data, w) {
         this.data = data;
         this.w = w;
@@ -14,7 +14,7 @@ class ModuleEmitter {
     }
     emitBinding() {
         //this.w.writeOpenModule(this.data.name).newLine();
-        this.w.writeText("jsb::JSBModule& m=ctx.getOrNewModule(\"" + this.data.name + "\");").newLine();
+        this.w.writeText("jsb::Value ns=ctx.getOrNewObject(ctx.global(),\"" + this.data.name + "\");").newLine();
         for (let d of this.data.members) {
             let emitter = EmitterFactory_1.CreateEmitter(d, this.w);
             emitter.emitBinding();
@@ -27,8 +27,8 @@ class ModuleEmitter {
         throw new Error("Method not implemented.");
     }
     export(name, value) {
-        this.w.writeText("m.add(\"" + name + "\"," + value + ");");
+        this.w.writeText("ns.setProperty(\"" + name + "\"," + value + ");");
     }
 }
-exports.ModuleEmitter = ModuleEmitter;
-//# sourceMappingURL=ModuleEmitter.js.map
+exports.NamespaceEmitter = NamespaceEmitter;
+//# sourceMappingURL=NamespaceEmitter.js.map

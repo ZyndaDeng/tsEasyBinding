@@ -1,17 +1,18 @@
-import { BindingData,  BaseBindingData } from "../BindingData";
+import { BindingData, BaseBindingData, IModule } from "../BindingData";
 import * as fs from "fs"
 import { Sys } from "../Sys";
 import * as ts from "typescript"
 import { Writter } from "../writter";
 import { Emitter } from "./Emitter";
 import { ClassEmitter } from "./ClassEmitter";
-import { ModuleEmitter } from "./ModuleEmitter";
+import { NamespaceEmitter } from "./NamespaceEmitter";
 import { FuncEmitter } from "./FuncEmitter";
 import { CreateEmitter } from "./EmitterFactory";
-import { JSBModule } from "../binding/JSBModule";
+import { JSBNamespace } from "../binding/JSBNamespace";
 import { JSBClass } from "../binding/JSBClass";
 import { JSBFunction } from "../binding/JSBFunction";
 import { JSBVar } from "../binding/JSBVar";
+import { JSBModule } from "../binding/JSBModule";
 
 export interface IBindingPackage {
     includeStr: string;
@@ -24,25 +25,29 @@ export interface BindingConfig {
     cppPath: string;
 }
 
-export let customize:{[name:string]:string}={};
+export let customize: { [name: string]: string } = {};
 
 export let enumDefined = new Array<string>();
+
+type ModuleData = BaseBindingData & IModule;
 export class SysEmitter {
 
 
 
-    protected moduleStack: Array<JSBModule>;
+    protected moduleStack: Array<ModuleData>;
     protected processData: Array<BaseBindingData>;
+    protected isInDeclare: boolean;
 
     constructor(protected config: BindingConfig) {
         //this.enumDefined = [];
         this.moduleStack = [];
         this.processData = [];
+        this.isInDeclare = false;
         // this.shouldFirstDefineList = [];
         // this.undefineList = {};
     }
 
-    openModule(module: JSBModule) {
+    openModule(module: ModuleData) {
         this.moduleStack.push(module);
     }
 
@@ -95,19 +100,32 @@ export class SysEmitter {
 
     protected readSourceFile(sf: ts.Statement) {
 
-        if (ts.isClassDeclaration(sf) && this.isDeclare(sf)) {
-            let classData = new JSBClass(sf);
-            this.addData(classData);
-        } else if (ts.isFunctionDeclaration(sf) && this.isDeclare(sf)) {
-            let funcData = new JSBFunction(sf);
-            this.addData(funcData);
-        } else if (ts.isVariableDeclaration(sf) && this.isDeclare(sf)) {
-            let varData = new JSBVar(sf);
-            this.addData(varData);
+        if (ts.isClassDeclaration(sf)) {
+            if (this.isDeclare(sf) || this.isInDeclare) {
+                let classData = new JSBClass(sf);
+                this.addData(classData);
+            }
+        } else if (ts.isFunctionDeclaration(sf)) {
+            if (this.isDeclare(sf) || this.isInDeclare) {
+                let funcData = new JSBFunction(sf);
+                this.addData(funcData);
+            }
+        } else if (ts.isVariableDeclaration(sf)) {
+            if (this.isDeclare(sf) || this.isInDeclare) {
+                let varData = new JSBVar(sf);
+                this.addData(varData);
+            }
         } else if (ts.isEnumDeclaration(sf)) {
             enumDefined.push(sf.name.getText());
         } else if (ts.isModuleDeclaration(sf)) {
-            let mod = new JSBModule(sf.name.getText());
+            let mod: ModuleData | undefined = undefined;
+            if (this.isDeclare(sf)) {
+                //因为module和namespace都是ModuleDeclaration 这里只能用不完全正确的规则区分
+                mod = new JSBModule(sf.name.getText());
+                this.isInDeclare = true;
+            } else {
+                mod = new JSBNamespace(sf.name.getText());
+            }
             this.addData(mod);
             this.openModule(mod);
             let body = sf.body;
@@ -117,6 +135,7 @@ export class SysEmitter {
                 }
             }
             this.closeModule();
+            this.isInDeclare = false;
         }
     }
 
@@ -140,19 +159,19 @@ export class SysEmitter {
         let arr = this.config.packages;
 
         let idx = 0;
-        let process=new Array<Array<BaseBindingData>>();
+        let process = new Array<Array<BaseBindingData>>();
         for (let a of arr) {
-            this.processData=[];//.splice(0);
+            this.processData = [];//.splice(0);
             let sf = this.getSourceFile(a.tsFiles);
             for (let n of sf) {
                 this.readSourceFile(n);
             }
             process.push(this.processData);
         }
-        
-        for(let i=0;i<arr.length;i++){
-            let a=arr[i];
-            let pData=process[i];
+
+        for (let i = 0; i < arr.length; i++) {
+            let a = arr[i];
+            let pData = process[i];
             this.processData.splice(0);
             let sf = this.getSourceFile(a.tsFiles);
             for (let n of sf) {
@@ -168,7 +187,7 @@ export class SysEmitter {
                 e.emitDefine();
             }
             writter.newLine();
-            writter.writeText("void " + this.packageName(a) + "(const jsb::Context& ctx)").writeLeftBracket().newLine();
+            writter.writeText("void " + this.packageName(a) + "( jsb::Context& ctx)").writeLeftBracket().newLine();
             for (let e of emitters) {
                 e.emitBinding();
             }

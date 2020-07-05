@@ -378,4 +378,22 @@ export function RegisterCustomize() {
 	}
 	JS_ThrowTypeError(ctx, "arguments value not match");
 }`
+customize["ListView_SetSelections"]=`
+JSValue js_ListView_SetSelections(JSContext* ctx, JSValueConst this_val,int argc, JSValueConst* argv)
+{
+	if(argc>=1&&JS_IsArray(ctx,argv[0])
+	){
+		if(argc==1){
+			PODVector<unsigned> n0; js_to_normal_array(ctx,argv[0],n0,js_to_number);
+			ListView* native=js_to_native_object<ListView>(ctx,this_val);
+			native->SetSelections(n0);
+			return JS_UNDEFINED;
+
+		}else{
+			JS_ThrowTypeError(ctx, "js_ListView_SetSelections invalid argument value: 1");
+		}
+	}
+	JS_ThrowTypeError(ctx, "js_ListView_SetSelections arguments value not match");
+}
+`
 }

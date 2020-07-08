@@ -396,4 +396,59 @@ JSValue js_ListView_SetSelections(JSContext* ctx, JSValueConst this_val,int argc
 	JS_ThrowTypeError(ctx, "js_ListView_SetSelections arguments value not match");
 }
 `
+customize["UIElement_LoadXML"]=`
+JSValue js_UIElement_LoadXML(JSContext* ctx, JSValueConst this_val, int argc, JSValueConst* argv)
+{
+	if (argc >= 1 && JS_IsString(argv[0])
+		) {
+		if (argc == 1) {
+			String n0 = JS_ToCString(ctx, argv[0]);
+			UIElement* native = js_to_native_object<UIElement>(ctx, this_val);
+			File file(native->GetContext());
+			if (!file.Open(n0, FILE_READ))
+				return JS_NewBool(ctx,  0);;
+			auto ret=native->LoadXML(file);
+			return JS_NewBool(ctx, ret ? 1 : 0);
+		}
+		else {
+			JS_ThrowTypeError(ctx, "js_UIElement_LoadXML invalid argument value: 1");
+		}
+	}
+	JS_ThrowTypeError(ctx, "js_UIElement_LoadXML arguments value not match");
+}
+`
+customize["UIElement_SaveXML"]=`
+JSValue js_UIElement_SaveXML(JSContext* ctx, JSValueConst this_val, int argc, JSValueConst* argv)
+{
+	if (argc >= 1 && JS_IsString(argv[0])
+		&& (argc <= 1 || JS_IsString( argv[1]))
+		) {
+		if (argc == 1) {
+			String n0 = JS_ToCString(ctx, argv[0]);
+			UIElement* native = js_to_native_object<UIElement>(ctx, this_val);
+			File file(native->GetContext());
+			if (!file.Open(n0, FILE_WRITE))
+				return JS_NewBool(ctx,0);;
+			auto ret = native->SaveXML(file);
+			return JS_NewBool(ctx, ret ? 1 : 0);
+
+		}
+		else if (argc == 2) {
+			String n0 = JS_ToCString(ctx, argv[0]);
+			String n1 = JS_ToCString(ctx, argv[1]);
+			UIElement* native = js_to_native_object<UIElement>(ctx, this_val);
+			File file(native->GetContext());
+			if (!file.Open(n0, FILE_WRITE))
+				return JS_NewBool(ctx, 0);;
+			auto ret = native->SaveXML(file,n1);
+			return JS_NewBool(ctx, ret ? 1 : 0);
+
+		}
+		else {
+			JS_ThrowTypeError(ctx, "js_UIElement_SaveXML invalid argument value: 2");
+		}
+	}
+	JS_ThrowTypeError(ctx, "js_UIElement_SaveXML arguments value not match");
+}
+`
 }

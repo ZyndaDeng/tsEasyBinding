@@ -42,8 +42,9 @@ export class ClassEmitter implements Emitter {
         exp.export(this.data.name, this.apiName() + "(ctx)");
     }
 
+    protected hasOpr:boolean;
     constructor(protected data: JSBClass, protected w: Writter) {
-
+        this.hasOpr=false;
     }
 
 
@@ -105,6 +106,8 @@ export class ClassEmitter implements Emitter {
             //w.writeText("duk_function_list_entry staticFuncs[] = {{NULL,NULL}};").newLine();
         }
 
+        
+
         let extendId = "0";
         if (this.data.extend.length > 0) {
            
@@ -119,6 +122,7 @@ export class ClassEmitter implements Emitter {
         w.writeText("jsb::JSBClass c(ctx,(JSClassID*)&(" + this.data.classId + "),\"" + this.data.name + "\"," + this.ctorName() + "," + finalizer + "," + extendId + ");").newLine();
         if (hasMembers) w.writeText("c.setMembers(functions, countof(functions));").newLine();
         if (hasStaticMembers) w.writeText("c.setStaticMembers(staticFuncs, countof(staticFuncs));").newLine();
+        if(this.hasOpr)w.writeText("ctx.setDefOpr(c.prototype);").newLine();
         w.writeText("return c.ctor;").newLine();
         w.writeRightBracket().newLine();
     }
@@ -197,9 +201,6 @@ export class ClassEmitter implements Emitter {
 
     /**创建带特定函数的条件语句 */
     protected buildFuncWithArgs(w: Writter, f: MethodData, args: ArgData[],returnType:ArgData|undefined) {
-
-        
-        
 
         let minCount = args.length;//最少参数个数
         for (let i = args.length - 1; i >= 0; i--) {
@@ -281,7 +282,7 @@ export class ClassEmitter implements Emitter {
     }
 
     /**
-     * 创建函数定义
+     * 创建访问器定义
      * @param f 
      */
     protected buildGetter(w: Writter, g: GetterData) {
@@ -510,6 +511,8 @@ export class ClassEmitter implements Emitter {
         }
         next = ");";
         w.writeText(next).newLine();
+    }else{
+        this.hasOpr=true;
     }
         if (returnType) {
             w.writeText("return ").writeText(this.buildReturn(returnType)).newLine();

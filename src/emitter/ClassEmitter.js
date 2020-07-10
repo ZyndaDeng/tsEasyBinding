@@ -5,6 +5,7 @@ class ClassEmitter {
     constructor(data, w) {
         this.data = data;
         this.w = w;
+        this.hasOpr = false;
     }
     emitDefine() {
         this.w.newLine();
@@ -106,6 +107,8 @@ class ClassEmitter {
             w.writeText("c.setMembers(functions, countof(functions));").newLine();
         if (hasStaticMembers)
             w.writeText("c.setStaticMembers(staticFuncs, countof(staticFuncs));").newLine();
+        if (this.hasOpr)
+            w.writeText("ctx.setDefOpr(c.prototype);").newLine();
         w.writeText("return c.ctor;").newLine();
         w.writeRightBracket().newLine();
     }
@@ -252,7 +255,7 @@ class ClassEmitter {
         return "js_" + this.data.name + "_" + f.name;
     }
     /**
-     * 创建函数定义
+     * 创建访问器定义
      * @param f
      */
     buildGetter(w, g) {
@@ -476,6 +479,9 @@ class ClassEmitter {
             }
             next = ");";
             w.writeText(next).newLine();
+        }
+        else {
+            this.hasOpr = true;
         }
         if (returnType) {
             w.writeText("return ").writeText(this.buildReturn(returnType)).newLine();

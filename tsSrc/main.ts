@@ -204,6 +204,8 @@ using namespace Urho3D;`,
     #include "Graphics/Viewport.h"
     #include "Graphics/Zone.h"
     #include "Scene/Scene.h"
+    #include "Math/Polyhedron.h"
+    #include "Scene/ValueAnimation.h"
     #include <JavaScript/easyBindings/ValTran.h>
 #include <JavaScript/easyBindings/BindingSys.h>
 using namespace Urho3D;`,
@@ -235,6 +237,10 @@ using namespace Urho3D;`,
     #include "UI/UI.h"
     #include "UI/Window.h"
     #include "UI/View3D.h"
+    #include "Scene/Scene.h"
+    #include "Graphics/Texture2D.h"
+    #include "Graphics/Viewport.h"
+    #include "Graphics/Camera.h"
     #include <JavaScript/easyBindings/ValTran.h>
 #include <JavaScript/easyBindings/BindingSys.h>
 using namespace Urho3D;`

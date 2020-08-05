@@ -82,7 +82,7 @@ class JSBClass extends BindingData_1.BaseBindingData {
                             def = true;
                         }
                         let ad = ArgDatas_1.buildArgData(p.type, def);
-                        if (refArgs && refArgs.includes(p.getText())) {
+                        if (refArgs && refArgs.includes(p.name.getText())) {
                             ad.ref = true;
                         }
                         arr.push(ad);

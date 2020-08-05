@@ -97,7 +97,7 @@ export class JSBClass extends BaseBindingData {
                             def = true;
                         }
                         let ad = buildArgData(p.type, def);
-                        if (refArgs&&refArgs.includes(p.getText())) {
+                        if (refArgs&&refArgs.includes(p.name.getText())) {
                             ad.ref = true;
                         }
                         arr.push(ad);

@@ -1,5 +1,5 @@
 import * as ts from "typescript"
-import { buildArgData } from "../ArgDatas";
+import { buildArgData, ArgData } from "../ArgDatas";
 import { Writter } from "../writter";
 import { Emitter, IExport } from "./Emitter";
 import { JSBFunction } from "../binding/JSBFunction";
@@ -12,6 +12,14 @@ export class FuncEmitter implements Emitter {
         this.w = writter;
     }
 
+    protected checkArgs(a: ArgData, idx: number) {
+        let ret = a.checkFunc("argv[" + idx + "]");
+        if (a.ignore) {
+            ret = "(argc<=" + idx + "||" + ret + ")";
+        }
+        return ret;
+    }
+
     emitDefine(): void {
         let w = this.w;
         w.writeText("JSValue " + this.name() + "(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv)").writeLeftBracket().newLine();
@@ -21,7 +29,7 @@ export class FuncEmitter implements Emitter {
 
             for (let i = 0; i < this.data.args.length; i++) {
                 let a = this.data.args[i];
-                w.writeText(next + a.checkFunc("argv["+i+"]")).newLine();
+                w.writeText(next + this.checkArgs(a,i)).newLine();
                 next = "&&";
             }
             w.writeText(")").writeLeftBracket().newLine();
@@ -48,6 +56,8 @@ export class FuncEmitter implements Emitter {
         }else{
             w.newLine();
         }
+        w.writeText( `JS_ThrowTypeError(ctx, "`+this.name()+` invalid argument value: ` + this.data.args.length + `");`).newLine();
+        w.writeText("return JS_UNDEFINED;").newLine();
         w.writeRightBracket().newLine().newLine();
     }
     emitBinding(): void {

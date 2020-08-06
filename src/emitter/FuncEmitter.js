@@ -5,6 +5,13 @@ class FuncEmitter {
         this.data = data;
         this.w = writter;
     }
+    checkArgs(a, idx) {
+        let ret = a.checkFunc("argv[" + idx + "]");
+        if (a.ignore) {
+            ret = "(argc<=" + idx + "||" + ret + ")";
+        }
+        return ret;
+    }
     emitDefine() {
         let w = this.w;
         w.writeText("JSValue " + this.name() + "(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv)").writeLeftBracket().newLine();
@@ -13,7 +20,7 @@ class FuncEmitter {
             w.writeText("if(").newLine();
             for (let i = 0; i < this.data.args.length; i++) {
                 let a = this.data.args[i];
-                w.writeText(next + a.checkFunc("argv[" + i + "]")).newLine();
+                w.writeText(next + this.checkArgs(a, i)).newLine();
                 next = "&&";
             }
             w.writeText(")").writeLeftBracket().newLine();
@@ -41,6 +48,8 @@ class FuncEmitter {
         else {
             w.newLine();
         }
+        w.writeText(`JS_ThrowTypeError(ctx, "` + this.name() + ` invalid argument value: ` + this.data.args.length + `");`).newLine();
+        w.writeText("return JS_UNDEFINED;").newLine();
         w.writeRightBracket().newLine().newLine();
     }
     emitBinding() {

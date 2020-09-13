@@ -203,6 +203,7 @@ using namespace Urho3D;`, "GraphicsApi", [
     #include "UI/UI.h"
     #include "UI/Window.h"
     #include "UI/View3D.h"
+    #include "UI/UIComponent.h"
     #include "Scene/Scene.h"
     #include "Graphics/Texture2D.h"
     #include "Graphics/Viewport.h"

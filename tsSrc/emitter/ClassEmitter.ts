@@ -241,8 +241,7 @@ export class ClassEmitter implements Emitter {
             }
         }
         w.writeRightBracket().writeText("else").writeLeftBracket().newLine();
-        w.writeText( `JS_ThrowTypeError(ctx, "`+this.functionName(f)+` invalid argument value: ` + args.length + `");`).newLine();
-        w.writeText(" return JS_UNDEFINED;").newLine().writeRightBracket();
+        w.writeText( `JS_ThrowTypeError(ctx, "`+this.functionName(f)+` invalid argument value: ` + args.length + `");`).newLine().writeRightBracket();
     }
 
     /**

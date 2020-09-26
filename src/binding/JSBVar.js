@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.JSBVar = void 0;
 const BindingData_1 = require("../BindingData");
 const ArgDatas_1 = require("../ArgDatas");
 /**

@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.ClassEmitter = void 0;
 const SysEmitter_1 = require("./SysEmitter");
 class ClassEmitter {
     constructor(data, w) {
@@ -221,8 +222,7 @@ class ClassEmitter {
             };
         }
         w.writeRightBracket().writeText("else").writeLeftBracket().newLine();
-        w.writeText(`JS_ThrowTypeError(ctx, "` + this.functionName(f) + ` invalid argument value: ` + args.length + `");`).newLine();
-        w.writeText(" return JS_UNDEFINED;").newLine().writeRightBracket();
+        w.writeText(`JS_ThrowTypeError(ctx, "` + this.functionName(f) + ` invalid argument value: ` + args.length + `");`).newLine().writeRightBracket();
     }
     /**
      * 创建函数定义

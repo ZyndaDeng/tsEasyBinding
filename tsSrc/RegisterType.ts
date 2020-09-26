@@ -163,13 +163,8 @@ export function RegisterType() {
     registerArgs["CascadeParameters"] = DefaultRefTypeArg
     registerArgs["FocusParameters"] = DefaultRefTypeArg
     registerArgs["PhysicsRaycastResult"] = DefaultRefTypeArg
-    registerArgs["Serializer"] = DefaultPtrTypeArg
-    registerArgs["Deserializer"] = DefaultPtrTypeArg
-    registerArgs["ColorFrame"] = DefaultPtrTypeArg
-    registerArgs["TextureFrame"] = DefaultPtrTypeArg
-    registerArgs["XMLElement"]=DefaultRefTypeArg
-    registerArgs["XPathResultSet"]=DefaultRefTypeArg
-    registerArgs["XPathQuery"]=DefaultRefTypeArg
+    //registerArgs["Serializer"] = DefaultPtrTypeArg
+    //registerArgs["Deserializer"] = DefaultPtrTypeArg
     //registerArgs["Model"] = DefaultTypeArg
 
     class StringVectorArg extends ArgDataBase {
@@ -241,6 +236,40 @@ export function RegisterType() {
         }
     }
     registerArgs["VariantMap"] = VariantMapArg
+
+    class DeserializerArg extends ArgDataBase {
+        constructor(p: ts.TypeNode, def?: boolean) {
+            super(p, def);
+            this.type = "Deserializer";
+        }
+        checkFunc(val: string): string {
+            return "!JS_IsUndefined(" + val + ")";
+        }
+        getFunc(val: string, idx: number): string {
+            return this.type + "* n" + idx + "=js_to_native_object<" + this.type + ">(ctx," + val + ");"
+        }
+        setFunc(): string {
+            return "js_push_urho3d_object(ctx,ret);"
+        }
+    }
+    registerArgs["Deserializer"] = DeserializerArg;
+
+    class SerializerArg extends ArgDataBase {
+        constructor(p: ts.TypeNode, def?: boolean) {
+            super(p, def);
+            this.type = "Serializer";
+        }
+        checkFunc(val: string): string {
+            return "!JS_IsUndefined(" + val + ")";
+        }
+        getFunc(val: string, idx: number): string {
+            return this.type + "* n" + idx + "=js_to_native_object<" + this.type + ">(ctx," + val + ");"
+        }
+        setFunc(): string {
+            return "js_push_urho3d_object(ctx,ret);"
+        }
+    }
+    registerArgs["Serializer"] = SerializerArg;
 
     class ComponentMapArg extends ArgDataBase {
         constructor(p: ts.TypeNode, def?: boolean) {
@@ -383,84 +412,6 @@ export function RegisterCustomize() {
 	}
 	JS_ThrowTypeError(ctx, "arguments value not match");
 }`
-customize["Node_GetComponents"] = `
-JSValue js_Node_GetComponents(JSContext* ctx, JSValueConst this_val, int argc, JSValueConst* argv)
-{
-	if (argc >= 1 && JS_IsString(argv[0])
-		&& (argc <= 1 || JS_IsBool(argv[1]))
-		) {
-		if (argc == 1) {
-			const char* n0 = JS_ToCString(ctx, argv[0]);
-			Node* native = js_to_native_object<Node>(ctx, this_val);
-			PODVector<Component*> ret; native->GetComponents(ret,n0);
-			return js_push_native_array(ctx, ret);
-
-		}
-		else if (argc == 2) {
-			const char* n0 = JS_ToCString(ctx, argv[0]);
-			bool n1 = JS_VALUE_GET_BOOL(argv[1]) ? true : false;
-			Node* native = js_to_native_object<Node>(ctx, this_val);
-			PODVector<Component*> ret; native->GetComponents(ret, n0, n1);
-			return js_push_native_array(ctx, ret);
-
-		}
-		else {
-			JS_ThrowTypeError(ctx, "js_Node_GetComponents invalid argument value: 2");
-		}
-	}
-	JS_ThrowTypeError(ctx, "js_Node_GetComponents arguments value not match");
-}`
-customize["FileSystem_ScanDir"]=`
-JSValue js_FileSystem_ScanDir(JSContext* ctx, JSValueConst this_val, int argc, JSValueConst* argv)
-{
-	if (argc >= 4 && JS_IsString(argv[0]) && JS_IsString(argv[1]) && JS_IsNumber(argv[2]) && JS_IsBool(argv[3])
-		) {
-		if (argc == 4) {
-			String n0 = JS_ToCString(ctx, argv[0]);
-			String n1 = JS_ToCString(ctx, argv[1]);
-			unsigned n2; JS_ToUint32(ctx, &n2, argv[2]);
-			bool n3 = JS_ToBool(ctx, argv[3]);
-			FileSystem* native = js_to_native_object<FileSystem>(ctx, this_val);
-			StringVector ret; native->ScanDir(ret,n0,n1,n2,n3);
-			return js_push_StringVector(ctx, ret);
-
-		}
-		else {
-			JS_ThrowTypeError(ctx, "js_FileSystem_ScanDir invalid argument value: 4");
-		}
-	}
-	JS_ThrowTypeError(ctx, "js_FileSystem_ScanDir arguments value not match");
-}
-`
-customize["PhysicsWorld_RaycastSingle"]=`
-JSValue js_PhysicsWorld_RaycastSingle(JSContext* ctx, JSValueConst this_val,int argc, JSValueConst* argv)
-{
-	if(argc>=2&&js_is_native(ctx,argv[0],js_Ray_id)
-	&&JS_IsNumber(argv[1])
-	&&(argc<=2||JS_IsInteger(argv[2]))
-	){
-		if(argc==2){
-			Ray n0= js_to_Ray(ctx, argv[0]);
-			double  n1=0.0; JS_ToFloat64(ctx,&n1,argv[1]);
-			PhysicsWorld* native=js_to_native_object<PhysicsWorld>(ctx,this_val);
-			PhysicsRaycastResult ret;native->RaycastSingle(ret,n0, n1);
-			return js_push_PhysicsRaycastResult(ctx,ret);
-
-		}else if(argc==3){
-			Ray n0= js_to_Ray(ctx, argv[0]);
-			double  n1=0.0; JS_ToFloat64(ctx,&n1,argv[1]);
-			unsigned n2= (unsigned)JS_VALUE_GET_INT(argv[2]);
-			PhysicsWorld* native=js_to_native_object<PhysicsWorld>(ctx,this_val);
-			PhysicsRaycastResult ret;native->RaycastSingle(ret,n0,n1,n2);
-			return js_push_PhysicsRaycastResult(ctx, ret);
-
-		}else{
-			JS_ThrowTypeError(ctx, "js_PhysicsWorld_RaycastSingle invalid argument value: 4");
-		}
-	}
-	JS_ThrowTypeError(ctx, "js_PhysicsWorld_RaycastSingle arguments value not match");
-}
-`
 customize["ListView_SetSelections"]=`
 JSValue js_ListView_SetSelections(JSContext* ctx, JSValueConst this_val,int argc, JSValueConst* argv)
 {
@@ -479,59 +430,59 @@ JSValue js_ListView_SetSelections(JSContext* ctx, JSValueConst this_val,int argc
 	JS_ThrowTypeError(ctx, "js_ListView_SetSelections arguments value not match");
 }
 `
-// customize["UIElement_LoadXML"]=`
-// JSValue js_UIElement_LoadXML(JSContext* ctx, JSValueConst this_val, int argc, JSValueConst* argv)
-// {
-// 	if (argc >= 1 && JS_IsString(argv[0])
-// 		) {
-// 		if (argc == 1) {
-// 			String n0 = JS_ToCString(ctx, argv[0]);
-// 			UIElement* native = js_to_native_object<UIElement>(ctx, this_val);
-// 			File file(native->GetContext());
-// 			if (!file.Open(n0, FILE_READ))
-// 				return JS_NewBool(ctx,  0);;
-// 			auto ret=native->LoadXML(file);
-// 			return JS_NewBool(ctx, ret ? 1 : 0);
-// 		}
-// 		else {
-// 			JS_ThrowTypeError(ctx, "js_UIElement_LoadXML invalid argument value: 1");
-// 		}
-// 	}
-// 	JS_ThrowTypeError(ctx, "js_UIElement_LoadXML arguments value not match");
-// }
-// `
-// customize["UIElement_SaveXML"]=`
-// JSValue js_UIElement_SaveXML(JSContext* ctx, JSValueConst this_val, int argc, JSValueConst* argv)
-// {
-// 	if (argc >= 1 && JS_IsString(argv[0])
-// 		&& (argc <= 1 || JS_IsString( argv[1]))
-// 		) {
-// 		if (argc == 1) {
-// 			String n0 = JS_ToCString(ctx, argv[0]);
-// 			UIElement* native = js_to_native_object<UIElement>(ctx, this_val);
-// 			File file(native->GetContext());
-// 			if (!file.Open(n0, FILE_WRITE))
-// 				return JS_NewBool(ctx,0);;
-// 			auto ret = native->SaveXML(file);
-// 			return JS_NewBool(ctx, ret ? 1 : 0);
+customize["UIElement_LoadXML"]=`
+JSValue js_UIElement_LoadXML(JSContext* ctx, JSValueConst this_val, int argc, JSValueConst* argv)
+{
+	if (argc >= 1 && JS_IsString(argv[0])
+		) {
+		if (argc == 1) {
+			String n0 = JS_ToCString(ctx, argv[0]);
+			UIElement* native = js_to_native_object<UIElement>(ctx, this_val);
+			File file(native->GetContext());
+			if (!file.Open(n0, FILE_READ))
+				return JS_NewBool(ctx,  0);;
+			auto ret=native->LoadXML(file);
+			return JS_NewBool(ctx, ret ? 1 : 0);
+		}
+		else {
+			JS_ThrowTypeError(ctx, "js_UIElement_LoadXML invalid argument value: 1");
+		}
+	}
+	JS_ThrowTypeError(ctx, "js_UIElement_LoadXML arguments value not match");
+}
+`
+customize["UIElement_SaveXML"]=`
+JSValue js_UIElement_SaveXML(JSContext* ctx, JSValueConst this_val, int argc, JSValueConst* argv)
+{
+	if (argc >= 1 && JS_IsString(argv[0])
+		&& (argc <= 1 || JS_IsString( argv[1]))
+		) {
+		if (argc == 1) {
+			String n0 = JS_ToCString(ctx, argv[0]);
+			UIElement* native = js_to_native_object<UIElement>(ctx, this_val);
+			File file(native->GetContext());
+			if (!file.Open(n0, FILE_WRITE))
+				return JS_NewBool(ctx,0);;
+			auto ret = native->SaveXML(file);
+			return JS_NewBool(ctx, ret ? 1 : 0);
 
-// 		}
-// 		else if (argc == 2) {
-// 			String n0 = JS_ToCString(ctx, argv[0]);
-// 			String n1 = JS_ToCString(ctx, argv[1]);
-// 			UIElement* native = js_to_native_object<UIElement>(ctx, this_val);
-// 			File file(native->GetContext());
-// 			if (!file.Open(n0, FILE_WRITE))
-// 				return JS_NewBool(ctx, 0);;
-// 			auto ret = native->SaveXML(file,n1);
-// 			return JS_NewBool(ctx, ret ? 1 : 0);
+		}
+		else if (argc == 2) {
+			String n0 = JS_ToCString(ctx, argv[0]);
+			String n1 = JS_ToCString(ctx, argv[1]);
+			UIElement* native = js_to_native_object<UIElement>(ctx, this_val);
+			File file(native->GetContext());
+			if (!file.Open(n0, FILE_WRITE))
+				return JS_NewBool(ctx, 0);;
+			auto ret = native->SaveXML(file,n1);
+			return JS_NewBool(ctx, ret ? 1 : 0);
 
-// 		}
-// 		else {
-// 			JS_ThrowTypeError(ctx, "js_UIElement_SaveXML invalid argument value: 2");
-// 		}
-// 	}
-// 	JS_ThrowTypeError(ctx, "js_UIElement_SaveXML arguments value not match");
-// }
-// `
+		}
+		else {
+			JS_ThrowTypeError(ctx, "js_UIElement_SaveXML invalid argument value: 2");
+		}
+	}
+	JS_ThrowTypeError(ctx, "js_UIElement_SaveXML arguments value not match");
+}
+`
 }

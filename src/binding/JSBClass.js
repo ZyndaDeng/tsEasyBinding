@@ -1,38 +1,37 @@
-import * as ts from "typescript"
-import { ArgData, buildArgData } from "../ArgDatas";
-import { BaseBindingData, BindingData } from "../BindingData";
-import { JSBCustomize, JSBRefArgs, JSBNativeName, JSBCommonClass, JSBGetSet } from "./JSBCustomize";
-
-export interface MethodData {
-    isStatic: boolean;
-    name: string;
-    nativeName:string;
-    returnType?: ArgData;
-    args: ArgData[];
-    override?:Array<{ returnType?: ArgData;args: ArgData[];}>;
-    customize?:string;
-}
-
-
-type GetSet={name:string,isFunc:boolean};
-export interface GetterData {
-    name: string;
-    get?: GetSet;
-    set?: GetSet;
-    type: ArgData;
-    isStatic:boolean;
-}
-
-export class JSBClass extends BaseBindingData {
-
-
-    constructor(dec: ts.ClassDeclaration) {
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.JSBClass = void 0;
+const ts = __importStar(require("typescript"));
+const ArgDatas_1 = require("../ArgDatas");
+const BindingData_1 = require("../BindingData");
+const JSBCustomize_1 = require("./JSBCustomize");
+class JSBClass extends BindingData_1.BaseBindingData {
+    constructor(dec) {
         super(dec.name ? dec.name.text : "");
-        this.nativeName=this.name;
-        JSBNativeName(this,dec);
-        this.finalizer="default_finalizer";
-        if(JSBCommonClass(dec)){
-            this.finalizer="js_"+this.nativeName+"_finalizer";
+        this.nativeName = this.name;
+        JSBCustomize_1.JSBNativeName(this, dec);
+        this.finalizer = "default_finalizer";
+        if (JSBCustomize_1.JSBCommonClass(dec)) {
+            this.finalizer = "js_" + this.nativeName + "_finalizer";
         }
         this.bindingType = "class";
         this.extend = "";
@@ -45,32 +44,31 @@ export class JSBClass extends BaseBindingData {
         this.methods = {};
         this.getters = {};
         //this.ctor = [];
-
         this.readClass(dec);
-        JSBClass.classes[this.name]=this;
+        JSBClass.classes[this.name] = this;
     }
-
-    static IsMyType(data: BindingData): data is JSBClass {
+    static IsMyType(data) {
         return data.bindingType == "class";
     }
-
-    protected readClass(dec: ts.ClassDeclaration) {
+    readClass(dec) {
         for (let m of dec.members) {
             if (ts.isMethodDeclaration(m)) {
                 this.readMethod(m);
-            } else if (ts.isConstructorDeclaration(m)) {
+            }
+            else if (ts.isConstructorDeclaration(m)) {
                 this.readCtor(m);
-            } else if (ts.isGetAccessorDeclaration(m)) {
+            }
+            else if (ts.isGetAccessorDeclaration(m)) {
                 this.readGetAccessor(m);
-            } else if (ts.isSetAccessorDeclaration(m)) {
+            }
+            else if (ts.isSetAccessorDeclaration(m)) {
                 this.readSetAccessor(m);
             }
         }
     }
-
-    protected readMethod(met: ts.MethodDeclaration) {
+    readMethod(met) {
         let isStatic = false;
-        let customizeName:string|undefined;
+        let customizeName;
         if (met.modifiers) {
             for (let a of met.modifiers) {
                 if (a.kind == ts.SyntaxKind.StaticKeyword) {
@@ -79,16 +77,16 @@ export class JSBClass extends BaseBindingData {
                 }
             }
         }
-        let refArgs = JSBRefArgs(met);
-        customizeName=JSBCustomize(met); 
-        
+        let refArgs = JSBCustomize_1.JSBRefArgs(met);
+        customizeName = JSBCustomize_1.JSBCustomize(met);
         let name = met.name.getText();
         if (this.methods[name]) {
             //这是该函数的重载
             let md = this.methods[name];
-            if (!md.override) md.override = [];
-            let arr = new Array<ArgData>();
-            let returnType:ArgData|undefined=undefined;
+            if (!md.override)
+                md.override = [];
+            let arr = new Array();
+            let returnType = undefined;
             if (met.parameters) {
                 for (let p of met.parameters) {
                     if (p.type) {
@@ -96,30 +94,33 @@ export class JSBClass extends BaseBindingData {
                         if (p.questionToken) {
                             def = true;
                         }
-                        let ad = buildArgData(p.type, def);
-                        if (refArgs&&refArgs.includes(p.getText())) {
+                        let ad = ArgDatas_1.buildArgData(p.type, def);
+                        if (refArgs && refArgs.includes(p.getText())) {
                             ad.ref = true;
                         }
                         arr.push(ad);
-                    } else {
+                    }
+                    else {
                         throw new Error("parameter type undfined");
                     }
                 }
             }
             if (met.type && met.type.kind != ts.SyntaxKind.VoidKeyword) {
-                returnType = buildArgData(met.type, undefined);
+                returnType = ArgDatas_1.buildArgData(met.type, undefined);
             }
-            md.override.push({returnType:returnType,args:arr});
-        } else {
+            md.override.push({ returnType: returnType, args: arr });
+        }
+        else {
             //添加该函数
-            let md: MethodData = {
+            let md = {
                 isStatic: isStatic,
                 name: name,
-                nativeName:name,
+                nativeName: name,
                 args: []
-            }
-            if(customizeName)md.customize=customizeName;
-            JSBNativeName(md,met);
+            };
+            if (customizeName)
+                md.customize = customizeName;
+            JSBCustomize_1.JSBNativeName(md, met);
             if (met.parameters) {
                 for (let p of met.parameters) {
                     if (p.type) {
@@ -127,33 +128,33 @@ export class JSBClass extends BaseBindingData {
                         if (p.questionToken) {
                             def = true;
                         }
-                        let ad = buildArgData(p.type, def);
-                        if (refArgs&&refArgs.includes(p.name.getText())) {
+                        let ad = ArgDatas_1.buildArgData(p.type, def);
+                        if (refArgs && refArgs.includes(p.name.getText())) {
                             ad.ref = true;
                         }
                         md.args.push(ad);
-                    } else {
+                    }
+                    else {
                         throw new Error("parameter type undfined");
                     }
                 }
             }
             if (met.type && met.type.kind != ts.SyntaxKind.VoidKeyword) {
-                md.returnType = buildArgData(met.type, undefined);
+                md.returnType = ArgDatas_1.buildArgData(met.type, undefined);
             }
             this.methods[name] = md;
         }
     }
-
-
-    protected readCtor(met: ts.ConstructorDeclaration) {
+    readCtor(met) {
         let arr = this.ctor;
         if (arr) {
-            arr = new Array<ArgData>();
+            arr = new Array();
             if (!this.othersCtor) {
                 this.othersCtor = [];
             }
             this.othersCtor.push(arr);
-        } else {
+        }
+        else {
             this.ctor = [];
             arr = this.ctor;
         }
@@ -164,40 +165,40 @@ export class JSBClass extends BaseBindingData {
                     if (p.questionToken) {
                         def = true;
                     }
-                    arr.push(buildArgData(p.type, def));
-                } else {
+                    arr.push(ArgDatas_1.buildArgData(p.type, def));
+                }
+                else {
                     throw new Error("parameter type undfined");
                 }
             }
         }
     }
-
-    protected GetterName(met: ts.SetAccessorDeclaration | ts.GetAccessorDeclaration, isGet: boolean) :GetSet{
+    GetterName(met, isGet) {
         let name = met.name.getText();
-        let self={nativeName:""};
-        let ret={name:name,isFunc:true};
-        JSBNativeName(self,met);
-        if(self.nativeName!=""){
-            ret.name=self.nativeName;   
-        }else{
-            ret=this.defalutGetter(name, isGet);
+        let self = { nativeName: "" };
+        let ret = { name: name, isFunc: true };
+        JSBCustomize_1.JSBNativeName(self, met);
+        if (self.nativeName != "") {
+            ret.name = self.nativeName;
         }
-        let getset=JSBGetSet(met);
-        if(getset){
-            ret.name=getset;
-            ret.isFunc=false;
+        else {
+            ret = this.defalutGetter(name, isGet);
+        }
+        let getset = JSBCustomize_1.JSBGetSet(met);
+        if (getset) {
+            ret.name = getset;
+            ret.isFunc = false;
         }
         return ret;
     }
-    protected defalutGetter(name: string, isGet: boolean) {
+    defalutGetter(name, isGet) {
         let f = name.charAt(0);
         let otherChars = name.substring(1);
         f = f.toUpperCase();
         let getOrSet = isGet ? "Get" : "Set";
-        return {name:getOrSet + f + otherChars,isFunc:true};
+        return { name: getOrSet + f + otherChars, isFunc: true };
     }
-
-    protected readGetAccessor(met: ts.GetAccessorDeclaration) {
+    readGetAccessor(met) {
         let isStatic = false;
         if (met.modifiers) {
             for (let a of met.modifiers) {
@@ -217,18 +218,18 @@ export class JSBClass extends BaseBindingData {
                 throw new Error("class:" + this.name + " getter " + name + " aready set");
             }
             gd.get = this.GetterName(met, true);
-        } else {
-            let gd: GetterData = {
+        }
+        else {
+            let gd = {
                 name: name,
                 get: this.GetterName(met, true),
-                type: buildArgData(met.type, undefined),
-                isStatic:isStatic
+                type: ArgDatas_1.buildArgData(met.type, undefined),
+                isStatic: isStatic
             };
             this.getters[name] = gd;
         }
     }
-
-    protected readSetAccessor(met: ts.SetAccessorDeclaration) {
+    readSetAccessor(met) {
         let isStatic = false;
         if (met.modifiers) {
             for (let a of met.modifiers) {
@@ -248,52 +249,40 @@ export class JSBClass extends BaseBindingData {
             if (gd.set) {
                 throw new Error("class:" + this.name + " setter " + name + " aready set");
             }
-
             gd.set = this.GetterName(met, false);
-        } else {
-            let gd: GetterData = {
+        }
+        else {
+            let gd = {
                 name: name,
                 set: this.GetterName(met, false),
-                type: buildArgData(p.type, undefined),
-                isStatic:isStatic
+                type: ArgDatas_1.buildArgData(p.type, undefined),
+                isStatic: isStatic
             };
             this.getters[name] = gd;
         }
     }
-
-    get classId(){
-        if(this.isInstanceof(JSBClass.classes["Object"])){
+    get classId() {
+        if (this.isInstanceof(JSBClass.classes["Object"])) {
             return this.nativeName + "::GetTypeInfoStatic()->bindingId";
-        }else{
-            return "js_"+this.nativeName+"_id";
-        }  
+        }
+        else {
+            return "js_" + this.nativeName + "_id";
+        }
     }
-
-    isInstanceof(jsbClass:JSBClass){
-        let cur:JSBClass|undefined=this;
+    isInstanceof(jsbClass) {
+        let cur = this;
         // if(this.name=="Object"){
         //     return true;
         // }
-        while(cur){
-            if(cur==jsbClass){
+        while (cur) {
+            if (cur == jsbClass) {
                 return true;
             }
-            cur=JSBClass.classes[cur.extend];
+            cur = JSBClass.classes[cur.extend];
         }
         return false;
     }
-
-    // protected hasSetCtor: boolean;
-    // includes:string;
-    //name: string;
-    bindingType: "class";
-    nativeName: string;
-    extend: string;
-    finalizer:string;
-    ctor?: Array<ArgData>;
-    customizeName?:string; 
-    othersCtor?: Array<Array<ArgData>>;
-    getters: { [key: string]: GetterData };
-    methods: { [key: string]: MethodData };
-    static classes:{ [key: string]: JSBClass }={};
 }
+exports.JSBClass = JSBClass;
+JSBClass.classes = {};
+//# sourceMappingURL=JSBClass.js.map

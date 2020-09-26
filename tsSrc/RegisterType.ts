@@ -163,8 +163,8 @@ export function RegisterType() {
     registerArgs["CascadeParameters"] = DefaultRefTypeArg
     registerArgs["FocusParameters"] = DefaultRefTypeArg
     registerArgs["PhysicsRaycastResult"] = DefaultRefTypeArg
-    registerArgs["Serializer"] = DefaultPtrTypeArg
-    registerArgs["Deserializer"] = DefaultPtrTypeArg
+    //registerArgs["Serializer"] = DefaultPtrTypeArg
+    //registerArgs["Deserializer"] = DefaultPtrTypeArg
     registerArgs["ColorFrame"] = DefaultPtrTypeArg
     registerArgs["TextureFrame"] = DefaultPtrTypeArg
     registerArgs["XMLElement"]=DefaultRefTypeArg
@@ -241,6 +241,40 @@ export function RegisterType() {
         }
     }
     registerArgs["VariantMap"] = VariantMapArg
+
+    class DeserializerArg extends ArgDataBase {
+        constructor(p: ts.TypeNode, def?: boolean) {
+            super(p, def);
+            this.type = "Deserializer";
+        }
+        checkFunc(val: string): string {
+            return "js_is_Deserializer(ctx," + val + ")";
+        }
+        getFunc(val: string, idx: number): string {
+            return this.type + "* n" + idx + "=js_to_native_object<" + this.type + ">(ctx," + val + ");"
+        }
+        setFunc(): string {
+            return "js_push_urho3d_object(ctx,ret);"
+        }
+    }
+    registerArgs["Deserializer"] = DeserializerArg;
+
+    class SerializerArg extends ArgDataBase {
+        constructor(p: ts.TypeNode, def?: boolean) {
+            super(p, def);
+            this.type = "Serializer";
+        }
+        checkFunc(val: string): string {
+            return "js_is_Serializer(ctx," + val + ")";
+        }
+        getFunc(val: string, idx: number): string {
+            return this.type + "* n" + idx + "=js_to_native_object<" + this.type + ">(ctx," + val + ");"
+        }
+        setFunc(): string {
+            return "js_push_urho3d_object(ctx,ret);"
+        }
+    }
+    registerArgs["Serializer"] = SerializerArg;
 
     class ComponentMapArg extends ArgDataBase {
         constructor(p: ts.TypeNode, def?: boolean) {

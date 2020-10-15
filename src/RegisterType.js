@@ -154,6 +154,11 @@ function RegisterType() {
     ArgDatas_1.registerArgs["PhysicsRaycastResult"] = ArgDatas_1.DefaultRefTypeArg;
     //registerArgs["Serializer"] = DefaultPtrTypeArg
     //registerArgs["Deserializer"] = DefaultPtrTypeArg
+    ArgDatas_1.registerArgs["ColorFrame"] = ArgDatas_1.DefaultPtrTypeArg;
+    ArgDatas_1.registerArgs["TextureFrame"] = ArgDatas_1.DefaultPtrTypeArg;
+    ArgDatas_1.registerArgs["XMLElement"] = ArgDatas_1.DefaultRefTypeArg;
+    ArgDatas_1.registerArgs["XPathResultSet"] = ArgDatas_1.DefaultRefTypeArg;
+    ArgDatas_1.registerArgs["XPathQuery"] = ArgDatas_1.DefaultRefTypeArg;
     //registerArgs["Model"] = DefaultTypeArg
     class StringVectorArg extends ArgDatas_1.ArgDataBase {
         constructor(p, def) {
@@ -219,13 +224,45 @@ function RegisterType() {
         }
     }
     ArgDatas_1.registerArgs["VariantMap"] = VariantMapArg;
+    class AttributeInfoArg extends ArgDatas_1.ArgDataBase {
+        constructor(p, def) {
+            super(p, def);
+            this.type = "AttributeInfo";
+        }
+        checkFunc(val) {
+            return "js_is_native(ctx," + val + ",js_" + this.type + "_id)";
+        }
+        getFunc(val, idx) {
+            throw new Error("not defined");
+        }
+        setFunc() {
+            return "js_push_ref<" + this.type + ">(ctx,ret" + ",js_" + this.type + "_id)";
+        }
+    }
+    ArgDatas_1.registerArgs["AttributeInfo"] = AttributeInfoArg;
+    class AttributeInfoArrayArg extends ArgDatas_1.ArgDataBase {
+        constructor(p, def) {
+            super(p, def);
+            this.type = "AttributeInfo";
+        }
+        checkFunc(val) {
+            throw new Error("not defined");
+        }
+        getFunc(val, idx) {
+            throw new Error("not defined");
+        }
+        setFunc() {
+            return "js_push_Attributes(ctx, ret)";
+        }
+    }
+    ArgDatas_1.registerArgs["AttributeInfoArray"] = AttributeInfoArrayArg;
     class DeserializerArg extends ArgDatas_1.ArgDataBase {
         constructor(p, def) {
             super(p, def);
             this.type = "Deserializer";
         }
         checkFunc(val) {
-            return "!JS_IsUndefined(" + val + ")";
+            return "js_is_Deserializer(ctx," + val + ")";
         }
         getFunc(val, idx) {
             return this.type + "* n" + idx + "=js_to_native_object<" + this.type + ">(ctx," + val + ");";
@@ -241,7 +278,7 @@ function RegisterType() {
             this.type = "Serializer";
         }
         checkFunc(val) {
-            return "!JS_IsUndefined(" + val + ")";
+            return "js_is_Serializer(ctx," + val + ")";
         }
         getFunc(val, idx) {
             return this.type + "* n" + idx + "=js_to_native_object<" + this.type + ">(ctx," + val + ");";
@@ -386,8 +423,90 @@ function RegisterCustomize() {
 			JS_ThrowTypeError(ctx, "invalid argument value: 3");
 		}
 	}
-	JS_ThrowTypeError(ctx, "arguments value not match");
+    JS_ThrowTypeError(ctx, "arguments value not match");
+    return JS_UNDEFINED;
 }`;
+    SysEmitter_1.customize["Node_GetComponents"] = `
+JSValue js_Node_GetComponents(JSContext* ctx, JSValueConst this_val, int argc, JSValueConst* argv)
+{
+	if (argc >= 1 && JS_IsString(argv[0])
+		&& (argc <= 1 || JS_IsBool(argv[1]))
+		) {
+		if (argc == 1) {
+			const char* n0 = JS_ToCString(ctx, argv[0]);
+			Node* native = js_to_native_object<Node>(ctx, this_val);
+			PODVector<Component*> ret; native->GetComponents(ret,n0);
+			return js_push_native_array(ctx, ret);
+
+		}
+		else if (argc == 2) {
+			const char* n0 = JS_ToCString(ctx, argv[0]);
+			bool n1 = JS_VALUE_GET_BOOL(argv[1]) ? true : false;
+			Node* native = js_to_native_object<Node>(ctx, this_val);
+			PODVector<Component*> ret; native->GetComponents(ret, n0, n1);
+			return js_push_native_array(ctx, ret);
+
+		}
+		else {
+			JS_ThrowTypeError(ctx, "js_Node_GetComponents invalid argument value: 2");
+		}
+	}
+    JS_ThrowTypeError(ctx, "js_Node_GetComponents arguments value not match");
+    return JS_UNDEFINED;
+}`;
+    SysEmitter_1.customize["FileSystem_ScanDir"] = `
+JSValue js_FileSystem_ScanDir(JSContext* ctx, JSValueConst this_val, int argc, JSValueConst* argv)
+{
+	if (argc >= 4 && JS_IsString(argv[0]) && JS_IsString(argv[1]) && JS_IsNumber(argv[2]) && JS_IsBool(argv[3])
+		) {
+		if (argc == 4) {
+			String n0 = JS_ToCString(ctx, argv[0]);
+			String n1 = JS_ToCString(ctx, argv[1]);
+			unsigned n2; JS_ToUint32(ctx, &n2, argv[2]);
+			bool n3 = JS_ToBool(ctx, argv[3]);
+			FileSystem* native = js_to_native_object<FileSystem>(ctx, this_val);
+			StringVector ret; native->ScanDir(ret,n0,n1,n2,n3);
+			return js_push_StringVector(ctx, ret);
+
+		}
+		else {
+			JS_ThrowTypeError(ctx, "js_FileSystem_ScanDir invalid argument value: 4");
+		}
+	}
+    JS_ThrowTypeError(ctx, "js_FileSystem_ScanDir arguments value not match");
+    return JS_UNDEFINED;
+}
+`;
+    SysEmitter_1.customize["PhysicsWorld_RaycastSingle"] = `
+JSValue js_PhysicsWorld_RaycastSingle(JSContext* ctx, JSValueConst this_val,int argc, JSValueConst* argv)
+{
+	if(argc>=2&&js_is_native(ctx,argv[0],js_Ray_id)
+	&&JS_IsNumber(argv[1])
+	&&(argc<=2||JS_IsInteger(argv[2]))
+	){
+		if(argc==2){
+			Ray n0= js_to_Ray(ctx, argv[0]);
+			double  n1=0.0; JS_ToFloat64(ctx,&n1,argv[1]);
+			PhysicsWorld* native=js_to_native_object<PhysicsWorld>(ctx,this_val);
+			PhysicsRaycastResult ret;native->RaycastSingle(ret,n0, n1);
+			return js_push_PhysicsRaycastResult(ctx,ret);
+
+		}else if(argc==3){
+			Ray n0= js_to_Ray(ctx, argv[0]);
+			double  n1=0.0; JS_ToFloat64(ctx,&n1,argv[1]);
+			unsigned n2= (unsigned)JS_VALUE_GET_INT(argv[2]);
+			PhysicsWorld* native=js_to_native_object<PhysicsWorld>(ctx,this_val);
+			PhysicsRaycastResult ret;native->RaycastSingle(ret,n0,n1,n2);
+			return js_push_PhysicsRaycastResult(ctx, ret);
+
+		}else{
+			JS_ThrowTypeError(ctx, "js_PhysicsWorld_RaycastSingle invalid argument value: 4");
+		}
+	}
+    JS_ThrowTypeError(ctx, "js_PhysicsWorld_RaycastSingle arguments value not match");
+    return JS_UNDEFINED;
+}
+`;
     SysEmitter_1.customize["ListView_SetSelections"] = `
 JSValue js_ListView_SetSelections(JSContext* ctx, JSValueConst this_val,int argc, JSValueConst* argv)
 {
@@ -403,64 +522,63 @@ JSValue js_ListView_SetSelections(JSContext* ctx, JSValueConst this_val,int argc
 			JS_ThrowTypeError(ctx, "js_ListView_SetSelections invalid argument value: 1");
 		}
 	}
-	JS_ThrowTypeError(ctx, "js_ListView_SetSelections arguments value not match");
+    JS_ThrowTypeError(ctx, "js_ListView_SetSelections arguments value not match");
+    return JS_UNDEFINED;
 }
 `;
-    SysEmitter_1.customize["UIElement_LoadXML"] = `
-JSValue js_UIElement_LoadXML(JSContext* ctx, JSValueConst this_val, int argc, JSValueConst* argv)
-{
-	if (argc >= 1 && JS_IsString(argv[0])
-		) {
-		if (argc == 1) {
-			String n0 = JS_ToCString(ctx, argv[0]);
-			UIElement* native = js_to_native_object<UIElement>(ctx, this_val);
-			File file(native->GetContext());
-			if (!file.Open(n0, FILE_READ))
-				return JS_NewBool(ctx,  0);;
-			auto ret=native->LoadXML(file);
-			return JS_NewBool(ctx, ret ? 1 : 0);
-		}
-		else {
-			JS_ThrowTypeError(ctx, "js_UIElement_LoadXML invalid argument value: 1");
-		}
-	}
-	JS_ThrowTypeError(ctx, "js_UIElement_LoadXML arguments value not match");
-}
-`;
-    SysEmitter_1.customize["UIElement_SaveXML"] = `
-JSValue js_UIElement_SaveXML(JSContext* ctx, JSValueConst this_val, int argc, JSValueConst* argv)
-{
-	if (argc >= 1 && JS_IsString(argv[0])
-		&& (argc <= 1 || JS_IsString( argv[1]))
-		) {
-		if (argc == 1) {
-			String n0 = JS_ToCString(ctx, argv[0]);
-			UIElement* native = js_to_native_object<UIElement>(ctx, this_val);
-			File file(native->GetContext());
-			if (!file.Open(n0, FILE_WRITE))
-				return JS_NewBool(ctx,0);;
-			auto ret = native->SaveXML(file);
-			return JS_NewBool(ctx, ret ? 1 : 0);
-
-		}
-		else if (argc == 2) {
-			String n0 = JS_ToCString(ctx, argv[0]);
-			String n1 = JS_ToCString(ctx, argv[1]);
-			UIElement* native = js_to_native_object<UIElement>(ctx, this_val);
-			File file(native->GetContext());
-			if (!file.Open(n0, FILE_WRITE))
-				return JS_NewBool(ctx, 0);;
-			auto ret = native->SaveXML(file,n1);
-			return JS_NewBool(ctx, ret ? 1 : 0);
-
-		}
-		else {
-			JS_ThrowTypeError(ctx, "js_UIElement_SaveXML invalid argument value: 2");
-		}
-	}
-	JS_ThrowTypeError(ctx, "js_UIElement_SaveXML arguments value not match");
-}
-`;
+    // customize["UIElement_LoadXML"]=`
+    // JSValue js_UIElement_LoadXML(JSContext* ctx, JSValueConst this_val, int argc, JSValueConst* argv)
+    // {
+    // 	if (argc >= 1 && JS_IsString(argv[0])
+    // 		) {
+    // 		if (argc == 1) {
+    // 			String n0 = JS_ToCString(ctx, argv[0]);
+    // 			UIElement* native = js_to_native_object<UIElement>(ctx, this_val);
+    // 			File file(native->GetContext());
+    // 			if (!file.Open(n0, FILE_READ))
+    // 				return JS_NewBool(ctx,  0);;
+    // 			auto ret=native->LoadXML(file);
+    // 			return JS_NewBool(ctx, ret ? 1 : 0);
+    // 		}
+    // 		else {
+    // 			JS_ThrowTypeError(ctx, "js_UIElement_LoadXML invalid argument value: 1");
+    // 		}
+    // 	}
+    // 	JS_ThrowTypeError(ctx, "js_UIElement_LoadXML arguments value not match");
+    // }
+    // `
+    // customize["UIElement_SaveXML"]=`
+    // JSValue js_UIElement_SaveXML(JSContext* ctx, JSValueConst this_val, int argc, JSValueConst* argv)
+    // {
+    // 	if (argc >= 1 && JS_IsString(argv[0])
+    // 		&& (argc <= 1 || JS_IsString( argv[1]))
+    // 		) {
+    // 		if (argc == 1) {
+    // 			String n0 = JS_ToCString(ctx, argv[0]);
+    // 			UIElement* native = js_to_native_object<UIElement>(ctx, this_val);
+    // 			File file(native->GetContext());
+    // 			if (!file.Open(n0, FILE_WRITE))
+    // 				return JS_NewBool(ctx,0);;
+    // 			auto ret = native->SaveXML(file);
+    // 			return JS_NewBool(ctx, ret ? 1 : 0);
+    // 		}
+    // 		else if (argc == 2) {
+    // 			String n0 = JS_ToCString(ctx, argv[0]);
+    // 			String n1 = JS_ToCString(ctx, argv[1]);
+    // 			UIElement* native = js_to_native_object<UIElement>(ctx, this_val);
+    // 			File file(native->GetContext());
+    // 			if (!file.Open(n0, FILE_WRITE))
+    // 				return JS_NewBool(ctx, 0);;
+    // 			auto ret = native->SaveXML(file,n1);
+    // 			return JS_NewBool(ctx, ret ? 1 : 0);
+    // 		}
+    // 		else {
+    // 			JS_ThrowTypeError(ctx, "js_UIElement_SaveXML invalid argument value: 2");
+    // 		}
+    // 	}
+    // 	JS_ThrowTypeError(ctx, "js_UIElement_SaveXML arguments value not match");
+    // }
+    // `
 }
 exports.RegisterCustomize = RegisterCustomize;
 //# sourceMappingURL=RegisterType.js.map

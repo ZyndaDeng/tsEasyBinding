@@ -242,6 +242,40 @@ export function RegisterType() {
     }
     registerArgs["VariantMap"] = VariantMapArg
 
+    class AttributeInfoArg extends ArgDataBase {
+        constructor(p: ts.TypeNode, def?: boolean) {
+            super(p, def);
+            this.type = "AttributeInfo";
+        }
+        checkFunc(val: string): string {
+            return "js_is_native(ctx," + val + ",js_" + this.type + "_id)";
+        }
+        getFunc(val: string, idx: number): string {
+            throw new Error("not defined");
+        }
+        setFunc(): string {
+            return "js_push_ref<"+this.type+">(ctx,ret"+ ",js_" + this.type + "_id)";
+        }
+    }
+    registerArgs["AttributeInfo"] = AttributeInfoArg
+
+    class AttributeInfoArrayArg extends ArgDataBase {
+        constructor(p: ts.TypeNode, def?: boolean) {
+            super(p, def);
+            this.type = "AttributeInfo";
+        }
+        checkFunc(val: string): string {
+            throw new Error("not defined");
+        }
+        getFunc(val: string, idx: number): string {
+            throw new Error("not defined");
+        }
+        setFunc(): string {
+            return "js_push_Attributes(ctx, ret)";
+        }
+    }
+    registerArgs["AttributeInfoArray"] = AttributeInfoArrayArg
+
     class DeserializerArg extends ArgDataBase {
         constructor(p: ts.TypeNode, def?: boolean) {
             super(p, def);
@@ -415,7 +449,8 @@ export function RegisterCustomize() {
 			JS_ThrowTypeError(ctx, "invalid argument value: 3");
 		}
 	}
-	JS_ThrowTypeError(ctx, "arguments value not match");
+    JS_ThrowTypeError(ctx, "arguments value not match");
+    return JS_UNDEFINED;
 }`
 customize["Node_GetComponents"] = `
 JSValue js_Node_GetComponents(JSContext* ctx, JSValueConst this_val, int argc, JSValueConst* argv)
@@ -442,7 +477,8 @@ JSValue js_Node_GetComponents(JSContext* ctx, JSValueConst this_val, int argc, J
 			JS_ThrowTypeError(ctx, "js_Node_GetComponents invalid argument value: 2");
 		}
 	}
-	JS_ThrowTypeError(ctx, "js_Node_GetComponents arguments value not match");
+    JS_ThrowTypeError(ctx, "js_Node_GetComponents arguments value not match");
+    return JS_UNDEFINED;
 }`
 customize["FileSystem_ScanDir"]=`
 JSValue js_FileSystem_ScanDir(JSContext* ctx, JSValueConst this_val, int argc, JSValueConst* argv)
@@ -463,7 +499,8 @@ JSValue js_FileSystem_ScanDir(JSContext* ctx, JSValueConst this_val, int argc, J
 			JS_ThrowTypeError(ctx, "js_FileSystem_ScanDir invalid argument value: 4");
 		}
 	}
-	JS_ThrowTypeError(ctx, "js_FileSystem_ScanDir arguments value not match");
+    JS_ThrowTypeError(ctx, "js_FileSystem_ScanDir arguments value not match");
+    return JS_UNDEFINED;
 }
 `
 customize["PhysicsWorld_RaycastSingle"]=`
@@ -492,7 +529,8 @@ JSValue js_PhysicsWorld_RaycastSingle(JSContext* ctx, JSValueConst this_val,int 
 			JS_ThrowTypeError(ctx, "js_PhysicsWorld_RaycastSingle invalid argument value: 4");
 		}
 	}
-	JS_ThrowTypeError(ctx, "js_PhysicsWorld_RaycastSingle arguments value not match");
+    JS_ThrowTypeError(ctx, "js_PhysicsWorld_RaycastSingle arguments value not match");
+    return JS_UNDEFINED;
 }
 `
 customize["ListView_SetSelections"]=`
@@ -510,7 +548,8 @@ JSValue js_ListView_SetSelections(JSContext* ctx, JSValueConst this_val,int argc
 			JS_ThrowTypeError(ctx, "js_ListView_SetSelections invalid argument value: 1");
 		}
 	}
-	JS_ThrowTypeError(ctx, "js_ListView_SetSelections arguments value not match");
+    JS_ThrowTypeError(ctx, "js_ListView_SetSelections arguments value not match");
+    return JS_UNDEFINED;
 }
 `
 // customize["UIElement_LoadXML"]=`

@@ -172,6 +172,8 @@ using namespace Urho3D;`, "PhysicsApi", [
     #include "Graphics/Viewport.h"
     #include "Graphics/Zone.h"
     #include "Scene/Scene.h"
+    #include "Scene/ValueAnimation.h"
+    #include "Math/Polyhedron.h"
     #include <JavaScript/easyBindings/ValTran.h>
 #include <JavaScript/easyBindings/BindingSys.h>
 using namespace Urho3D;`, "GraphicsApi", [

@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Writter = void 0;
 const enter = "\n";
 const tab = "\t";
 class Writter {

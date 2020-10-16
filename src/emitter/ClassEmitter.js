@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ClassEmitter = void 0;
 const SysEmitter_1 = require("./SysEmitter");
 class ClassEmitter {
     constructor(data, w) {
@@ -249,6 +248,7 @@ class ClassEmitter {
             //next = "}";
             w.writeRightBracket().newLine();
             w.writeText(`JS_ThrowTypeError(ctx, "` + this.functionName(f) + ` arguments value not match");`).newLine();
+            w.writeText(" return JS_UNDEFINED;").newLine();
             w.writeRightBracket().newLine();
         }
     }

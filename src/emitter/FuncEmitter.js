@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.FuncEmitter = void 0;
 class FuncEmitter {
     constructor(data, writter) {
         this.data = data;

@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.JSBModule = void 0;
 const BindingData_1 = require("../BindingData");
 class JSBModule extends BindingData_1.BaseBindingData {
     constructor(name) {

@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.BaseBindingData = void 0;
 class BaseBindingData {
     constructor(name) {
         this.name = name;

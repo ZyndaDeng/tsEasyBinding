@@ -259,7 +259,7 @@ export function RegisterType() {
     }
     registerArgs["AttributeInfo"] = AttributeInfoArg
 
-    class AttributeInfoArrayArg extends ArgDataBase {
+    class AttributeInfoVectorArg extends ArgDataBase {
         constructor(p: ts.TypeNode, def?: boolean) {
             super(p, def);
             this.type = "AttributeInfo";
@@ -271,10 +271,10 @@ export function RegisterType() {
             throw new Error("not defined");
         }
         setFunc(): string {
-            return "js_push_Attributes(ctx, ret)";
+            return "js_push_Attributes(ctx, ret);";
         }
     }
-    registerArgs["AttributeInfoArray"] = AttributeInfoArrayArg
+    registerArgs["AttributeInfoVector"] = AttributeInfoVectorArg
 
     class DeserializerArg extends ArgDataBase {
         constructor(p: ts.TypeNode, def?: boolean) {

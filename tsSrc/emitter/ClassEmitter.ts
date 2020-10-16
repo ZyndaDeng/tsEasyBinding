@@ -269,6 +269,7 @@ export class ClassEmitter implements Emitter {
             //next = "}";
             w.writeRightBracket().newLine();
             w.writeText( `JS_ThrowTypeError(ctx, "`+this.functionName(f)+` arguments value not match");`).newLine();
+            w.writeText(" return JS_UNDEFINED;").newLine();
             w.writeRightBracket().newLine();
         }
 

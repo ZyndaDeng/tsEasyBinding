@@ -10,7 +10,7 @@ function RegisterType() {
             this.type = "String";
         }
         getFunc(val, idx) {
-            return "String n" + idx + "= JS_ToCString(ctx, " + val + ");";
+            return "String n" + idx + "= js_to_string(ctx, " + val + ");";
         }
         setFunc() {
             return "js_push_urho3d_string(ctx,ret);";

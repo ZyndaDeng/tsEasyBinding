@@ -11,7 +11,7 @@ export function RegisterType() {
             this.type = "String";
         }
         getFunc(val: string, idx: number): string {
-            return "String n" + idx + "= JS_ToCString(ctx, " + val + ");"
+            return "String n" + idx + "= js_to_string(ctx, " + val + ");"
         }
         setFunc(): string {
             return "js_push_urho3d_string(ctx,ret);"

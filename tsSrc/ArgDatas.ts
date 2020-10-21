@@ -23,7 +23,7 @@ export class ArgDataBase implements ArgData {
         return "JS_IsString(" + val + ")";
     }
     getFunc(val: string,idx:number): string {
-        return "const char* n" + idx + "= JS_ToCString(ctx," + val + ");"
+        return "const char* n" + idx + "= js_to_cstring(ctx," + val + ");"
     }
     setFunc(): string {
         return "JS_NewString(ctx,ret);"

@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.VarEmitter = void 0;
 const writter_1 = require("../writter");
 class VarEmitter {
     constructor(data, w) {

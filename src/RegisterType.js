@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.RegisterCustomize = exports.RegisterType = void 0;
 const ArgDatas_1 = require("./ArgDatas");
 const SysEmitter_1 = require("./emitter/SysEmitter");
 const JSBClass_1 = require("./binding/JSBClass");
@@ -11,7 +10,7 @@ function RegisterType() {
             this.type = "String";
         }
         getFunc(val, idx) {
-            return "String n" + idx + "= JS_ToCString(ctx, " + val + ");";
+            return "String n" + idx + "= js_to_string(ctx, " + val + ");";
         }
         setFunc() {
             return "js_push_urho3d_string(ctx,ret);";
@@ -240,7 +239,7 @@ function RegisterType() {
         }
     }
     ArgDatas_1.registerArgs["AttributeInfo"] = AttributeInfoArg;
-    class AttributeInfoArrayArg extends ArgDatas_1.ArgDataBase {
+    class AttributeInfoVectorArg extends ArgDatas_1.ArgDataBase {
         constructor(p, def) {
             super(p, def);
             this.type = "AttributeInfo";
@@ -252,10 +251,10 @@ function RegisterType() {
             throw new Error("not defined");
         }
         setFunc() {
-            return "js_push_Attributes(ctx, ret)";
+            return "js_push_Attributes(ctx, ret);";
         }
     }
-    ArgDatas_1.registerArgs["AttributeInfoArray"] = AttributeInfoArrayArg;
+    ArgDatas_1.registerArgs["AttributeInfoVector"] = AttributeInfoVectorArg;
     class DeserializerArg extends ArgDatas_1.ArgDataBase {
         constructor(p, def) {
             super(p, def);

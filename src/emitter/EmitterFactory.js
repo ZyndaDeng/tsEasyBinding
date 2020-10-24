@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CreateEmitter = void 0;
 const ClassEmitter_1 = require("./ClassEmitter");
 const NamespaceEmitter_1 = require("./NamespaceEmitter");
 const FuncEmitter_1 = require("./FuncEmitter");

@@ -233,7 +233,7 @@ class NativeArg extends ArgDataBase {
     setFunc() {
         var _a;
         let classId = (_a = JSBClass_1.JSBClass.classes[this.type]) === null || _a === void 0 ? void 0 : _a.classId;
-        if (classId.endsWith("->bindingId")) {
+        if (classId && classId.endsWith("->bindingId")) {
             //classId="ret->GetTypeInfo()->bindingId";
             return `js_push_urho3d_object(ctx,ret);`;
         }

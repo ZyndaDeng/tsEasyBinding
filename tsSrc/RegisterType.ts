@@ -3,8 +3,12 @@ import { ArgDataBase, registerArgs, DefaultTypeArg, StringArg, DefaultRefTypeArg
 import { customize } from "./emitter/SysEmitter";
 import { JSBClass } from "./binding/JSBClass";
 
+/**
+* 注册类型绑定规则
+*/
 export function RegisterType() {
 
+    
     class Urho3DStringArg extends ArgDataBase {
         constructor(p: ts.TypeNode, def?: boolean) {
             super(p, def);
@@ -410,6 +414,9 @@ export function RegisterType() {
     registerArgs["ILogicComponent"] = ILogicComponentArg
 }
 
+/**
+ * 注册自定义的绑定方法
+ */
 export function RegisterCustomize() {
 
     customize["Node_ScriptComponent"] = `

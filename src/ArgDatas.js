@@ -35,7 +35,7 @@ class ArgDataBase {
         return "JS_IsString(" + val + ")";
     }
     getFunc(val, idx) {
-        return "const char* n" + idx + "= JS_ToCString(ctx," + val + ");";
+        return "const char* n" + idx + "= js_to_cstring(ctx," + val + ");";
     }
     setFunc() {
         return "JS_NewString(ctx,ret);";

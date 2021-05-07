@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.JSBNamespace = void 0;
 const BindingData_1 = require("../BindingData");
 class JSBNamespace extends BindingData_1.BaseBindingData {
     constructor(name) {

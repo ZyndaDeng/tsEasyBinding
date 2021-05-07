@@ -1,8 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.RegisterCustomize = exports.RegisterType = void 0;
 const ArgDatas_1 = require("./ArgDatas");
 const SysEmitter_1 = require("./emitter/SysEmitter");
 const JSBClass_1 = require("./binding/JSBClass");
+/**
+* 注册类型绑定规则
+*/
 function RegisterType() {
     class Urho3DStringArg extends ArgDatas_1.ArgDataBase {
         constructor(p, def) {
@@ -384,6 +388,9 @@ function RegisterType() {
     ArgDatas_1.registerArgs["ILogicComponent"] = ILogicComponentArg;
 }
 exports.RegisterType = RegisterType;
+/**
+ * 注册自定义的绑定方法
+ */
 function RegisterCustomize() {
     SysEmitter_1.customize["Node_ScriptComponent"] = `
     JSValue js_Node_ScriptComponent(JSContext* ctx, JSValueConst this_val, int argc, JSValueConst* argv)

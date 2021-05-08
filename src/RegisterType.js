@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.RegisterCustomize = exports.RegisterType = void 0;
 const ArgDatas_1 = require("./ArgDatas");
 const SysEmitter_1 = require("./emitter/SysEmitter");
 const JSBClass_1 = require("./binding/JSBClass");

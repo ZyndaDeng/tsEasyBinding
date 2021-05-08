@@ -13,6 +13,7 @@ import { JSBClass } from "../binding/JSBClass";
 import { JSBFunction } from "../binding/JSBFunction";
 import { JSBVar } from "../binding/JSBVar";
 import { JSBModule } from "../binding/JSBModule";
+import { RegisterMyType, RegisterTypeMap } from "../ArgDatas";
 
 export interface IBindingPackage {
     includeStr: string;
@@ -23,16 +24,17 @@ export interface IBindingPackage {
 export interface BindingConfig {
     packages: IBindingPackage[];
     cppPath: string;
+    registerTypes:RegisterTypeMap;
+    /**自定义的转换函数 */
+    customize: { [name: string]: string }
 }
 
-export let customize: { [name: string]: string } = {};
+ export let customize: { [name: string]: string } = {};
 
 export let enumDefined = new Array<string>();
 
 type ModuleData = BaseBindingData & IModule;
 export class SysEmitter {
-
-
 
     protected moduleStack: Array<ModuleData>;
     protected processData: Array<BaseBindingData>;
@@ -154,10 +156,11 @@ export class SysEmitter {
         return "js_" + pack.name + "_package_api";
     }
 
-
     emit() {
-        let arr = this.config.packages;
+        RegisterMyType(this.config.registerTypes);
+        Object.assign(customize,this.config.customize);
 
+        let arr = this.config.packages;
         let idx = 0;
         let process = new Array<Array<BaseBindingData>>();
         for (let a of arr) {

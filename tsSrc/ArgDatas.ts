@@ -3,6 +3,8 @@ import * as ts from "typescript"
 import { enumDefined } from "./emitter/SysEmitter";
 import { JSBClass } from "./binding/JSBClass";
 
+
+export type RegisterTypeMap={[name:string]:new(p: ts.TypeNode, def?: boolean) => ArgData};
 export interface ArgData {
     type: string;
     ignore?: boolean;
@@ -13,7 +15,11 @@ export interface ArgData {
     setFunc(): string;
 }
 
-export let registerArgs:{[name:string]:new(p: ts.TypeNode, def?: boolean) => ArgData}={};
+ let registerArgs:RegisterTypeMap={};
+
+ export function RegisterMyType(types:RegisterTypeMap){
+     Object.assign(registerArgs,types);
+ }
 
 export class ArgDataBase implements ArgData {
     type: string;
@@ -242,7 +248,7 @@ export function buildArgData(p: ts.TypeNode, def: boolean | undefined): ArgData 
         ret = new BoolArg(p, def);
     } else {
         let t = p.getText();
-        if (enumDefined.includes(t)) {
+        if (enumDefined.includes(t)) {//枚举类型
             ret = new EnumArg(t, p, def);
         } else if (t.includes("Array")) {
             if(ts.isTypeReferenceNode(p)){

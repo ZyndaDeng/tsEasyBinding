@@ -10,7 +10,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const ts = __importStar(require("typescript"));
 const SysEmitter_1 = require("./emitter/SysEmitter");
 const JSBClass_1 = require("./binding/JSBClass");
-exports.registerArgs = {};
+let registerArgs = {};
+function RegisterMyType(types) {
+    Object.assign(registerArgs, types);
+}
+exports.RegisterMyType = RegisterMyType;
 class ArgDataBase {
     constructor(p, ignore) {
         this.type = "string";
@@ -241,7 +245,7 @@ function buildArgData(p, def) {
     }
     else {
         let t = p.getText();
-        if (SysEmitter_1.enumDefined.includes(t)) {
+        if (SysEmitter_1.enumDefined.includes(t)) { //枚举类型
             ret = new EnumArg(t, p, def);
         }
         else if (t.includes("Array")) {
@@ -264,8 +268,8 @@ function buildArgData(p, def) {
         else if ("uint" == t) {
             ret = new UIntArg(p, def);
         }
-        else if (exports.registerArgs[t]) {
-            ret = new exports.registerArgs[t](p, def);
+        else if (registerArgs[t]) {
+            ret = new registerArgs[t](p, def);
         }
         else {
             ret = new NativeArg(p, def);

@@ -17,6 +17,7 @@ const JSBClass_1 = require("../binding/JSBClass");
 const JSBFunction_1 = require("../binding/JSBFunction");
 const JSBVar_1 = require("../binding/JSBVar");
 const JSBModule_1 = require("../binding/JSBModule");
+const ArgDatas_1 = require("../ArgDatas");
 exports.customize = {};
 exports.enumDefined = new Array();
 class SysEmitter {
@@ -130,6 +131,8 @@ class SysEmitter {
         return "js_" + pack.name + "_package_api";
     }
     emit() {
+        ArgDatas_1.RegisterMyType(this.config.registerTypes);
+        Object.assign(exports.customize, this.config.customize);
         let arr = this.config.packages;
         let idx = 0;
         let process = new Array();

@@ -25,7 +25,6 @@ export interface GetterData {
 
 export class JSBClass extends BaseBindingData {
 
-
     constructor(dec: ts.ClassDeclaration) {
         super(dec.name ? dec.name.text : "");
         this.nativeName=this.name;
@@ -175,12 +174,10 @@ export class JSBClass extends BaseBindingData {
     protected GetterName(met: ts.SetAccessorDeclaration | ts.GetAccessorDeclaration, isGet: boolean) :GetSet{
         let name = met.name.getText();
         let self={nativeName:""};
-        let ret={name:name,isFunc:true};
+        let ret=this.defaultGetter(name, isGet);
         JSBNativeName(self,met);
         if(self.nativeName!=""){
             ret.name=self.nativeName;   
-        }else{
-            ret=this.defalutGetter(name, isGet);
         }
         let getset=JSBGetSet(met);
         if(getset){
@@ -189,12 +186,11 @@ export class JSBClass extends BaseBindingData {
         }
         return ret;
     }
-    protected defalutGetter(name: string, isGet: boolean) {
-        let f = name.charAt(0);
-        let otherChars = name.substring(1);
-        f = f.toUpperCase();
-        let getOrSet = isGet ? "Get" : "Set";
-        return {name:getOrSet + f + otherChars,isFunc:true};
+     /**
+     * 设置默认的getset变量对应规则
+     */
+    protected defaultGetter(name: string, isGet: boolean) {
+       return {name:name,isFunc:false};
     }
 
     protected readGetAccessor(met: ts.GetAccessorDeclaration) {
@@ -262,11 +258,7 @@ export class JSBClass extends BaseBindingData {
     }
 
     get classId(){
-        if(this.isInstanceof(JSBClass.classes["Object"])){
-            return this.nativeName + "::GetTypeInfoStatic()->bindingId";
-        }else{
-            return "js_"+this.nativeName+"_id";
-        }  
+            return "js_"+this.nativeName+"_id";   
     }
 
     isInstanceof(jsbClass:JSBClass){

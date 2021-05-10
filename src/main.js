@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const urho3d_1 = require("./platform/urho3d");
+const unreal_1 = require("./platform/unreal");
 function main() {
-    urho3d_1.urho3dConfig();
+    unreal_1.unrealConfig();
 }
 main();
 //# sourceMappingURL=main.js.map

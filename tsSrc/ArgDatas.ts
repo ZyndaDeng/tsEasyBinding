@@ -219,13 +219,16 @@ export class NativeArg extends ArgDataBase {
         this.type = p.getText();
     }
     checkFunc(val: string): string {
-        let classId=JSBClass.classes[this.type]?.classId;
-        if(!classId)classId=this.type + "::GetTypeInfoStatic()->bindingId";
+        let jsbclass=JSBClass.classes[this.type];
+        let classId=jsbclass?.classId;
+        let type=jsbclass?jsbclass.nativeName:this.type;
+        if(!classId)classId=type + "::GetTypeInfoStatic()->bindingId";
         return "js_is_native(ctx," + val + ","+ classId+")";
     }
     getFunc(val: string,idx:number): string {
-       
-        return this.type + "* n" + idx + "=js_to_native_object<" + this.type + ">(ctx," + val + ");"
+        let jsbclass=JSBClass.classes[this.type];
+        let type=jsbclass?jsbclass.nativeName:this.type;
+        return type + "* n" + idx + "=js_to_native_object<" + type + ">(ctx," + val + ");"
     }
     setFunc(): string {
         let classId=JSBClass.classes[this.type]?.classId;

@@ -1,25 +1,12 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    result["default"] = mod;
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.JSBClass = void 0;
 const ts = __importStar(require("typescript"));
 const ArgDatas_1 = require("../ArgDatas");
 const BindingData_1 = require("../BindingData");
@@ -176,13 +163,10 @@ class JSBClass extends BindingData_1.BaseBindingData {
     GetterName(met, isGet) {
         let name = met.name.getText();
         let self = { nativeName: "" };
-        let ret = { name: name, isFunc: true };
+        let ret = this.defaultGetter(name, isGet);
         JSBCustomize_1.JSBNativeName(self, met);
         if (self.nativeName != "") {
             ret.name = self.nativeName;
-        }
-        else {
-            ret = this.defalutGetter(name, isGet);
         }
         let getset = JSBCustomize_1.JSBGetSet(met);
         if (getset) {
@@ -191,12 +175,11 @@ class JSBClass extends BindingData_1.BaseBindingData {
         }
         return ret;
     }
-    defalutGetter(name, isGet) {
-        let f = name.charAt(0);
-        let otherChars = name.substring(1);
-        f = f.toUpperCase();
-        let getOrSet = isGet ? "Get" : "Set";
-        return { name: getOrSet + f + otherChars, isFunc: true };
+    /**
+    * 设置默认的getset变量对应规则
+    */
+    defaultGetter(name, isGet) {
+        return { name: name, isFunc: false };
     }
     readGetAccessor(met) {
         let isStatic = false;
@@ -262,12 +245,7 @@ class JSBClass extends BindingData_1.BaseBindingData {
         }
     }
     get classId() {
-        if (this.isInstanceof(JSBClass.classes["Object"])) {
-            return this.nativeName + "::GetTypeInfoStatic()->bindingId";
-        }
-        else {
-            return "js_" + this.nativeName + "_id";
-        }
+        return "js_" + this.nativeName + "_id";
     }
     isInstanceof(jsbClass) {
         let cur = this;

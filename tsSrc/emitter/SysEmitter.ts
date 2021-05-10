@@ -14,6 +14,7 @@ import { JSBFunction } from "../binding/JSBFunction";
 import { JSBVar } from "../binding/JSBVar";
 import { JSBModule } from "../binding/JSBModule";
 import { RegisterMyType, RegisterTypeMap } from "../ArgDatas";
+import { Constructor } from "../utils";
 
 export interface IBindingPackage {
     includeStr: string;
@@ -27,6 +28,7 @@ export interface BindingConfig {
     registerTypes:RegisterTypeMap;
     /**自定义的转换函数 */
     customize: { [name: string]: string }
+    jsbClassCtor?:Constructor<JSBClass>
 }
 
  export let customize: { [name: string]: string } = {};
@@ -39,6 +41,7 @@ export class SysEmitter {
     protected moduleStack: Array<ModuleData>;
     protected processData: Array<BaseBindingData>;
     protected isInDeclare: boolean;
+    protected jsbClassCtor:Constructor<JSBClass>
 
     constructor(protected config: BindingConfig) {
         //this.enumDefined = [];
@@ -47,6 +50,11 @@ export class SysEmitter {
         this.isInDeclare = false;
         // this.shouldFirstDefineList = [];
         // this.undefineList = {};
+        if(config.jsbClassCtor){
+            this.jsbClassCtor=config.jsbClassCtor;
+        }else{
+            this.jsbClassCtor=JSBClass;
+        }
     }
 
     openModule(module: ModuleData) {
@@ -104,7 +112,7 @@ export class SysEmitter {
 
         if (ts.isClassDeclaration(sf)) {
             if (this.isDeclare(sf) || this.isInDeclare) {
-                let classData = new JSBClass(sf);
+                let classData = new this.jsbClassCtor(sf);
                 this.addData(classData);
             }
         } else if (ts.isFunctionDeclaration(sf)) {

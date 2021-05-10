@@ -4,6 +4,25 @@ import { BindingConfig, SysEmitter } from "../emitter/SysEmitter";
 import * as ts from "typescript"
 import { JSBClass } from "../binding/JSBClass";
 
+class MyJSBClass extends JSBClass{
+
+    protected defaultGetter(name:string,isGet:boolean){
+        let f = name.charAt(0);
+        let otherChars = name.substring(1);
+        f = f.toUpperCase();
+        let getOrSet = isGet ? "Get" : "Set";
+        return {name:getOrSet + f + otherChars,isFunc:true};
+    }
+
+    get classId(){
+        if(this.isInstanceof(JSBClass.classes["Object"])){
+            return this.nativeName + "::GetTypeInfoStatic()->bindingId";
+        }else{
+            return "js_"+this.nativeName+"_id";
+        }  
+    }
+}
+
 export function urho3dConfig(){
     let arr = new Array<BindingPackage>();
     arr.push(new BindingPackage(`#include "Resource/Resource.h"
@@ -267,8 +286,10 @@ using namespace Urho3D;`,
         cppPath:"../zyndaurho3d/Source/Urho3D/JavaScript/easyBindings/jsbApis/",
         registerTypes:registerType(),
         customize:registerCustomize(),
+        jsbClassCtor:MyJSBClass,
     }
 
+   
     let sysEmit=new SysEmitter(config);
     sysEmit.emit();
 }

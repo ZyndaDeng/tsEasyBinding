@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ModuleEmitter = void 0;
 const EmitterFactory_1 = require("./EmitterFactory");
 class ModuleEmitter {
     constructor(data, w) {

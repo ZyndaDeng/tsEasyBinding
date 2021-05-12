@@ -1,3 +1,5 @@
+import { ArgData } from "../ArgDatas";
+import { Writter } from "../writter";
 
 export interface MemberMap{
 
@@ -8,4 +10,17 @@ export interface TypeDefineData{
 }
 export class TypeEmitter{
 
+
+    constructor(protected data:ArgData,protected w:Writter){
+        
+    }
+
+    emitDeclare(){
+        
+        this.w.writeText();
+    }
+
+    emitDefine(){
+
+    }
 }

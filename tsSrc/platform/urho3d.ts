@@ -283,7 +283,7 @@ using namespace Urho3D;`,
     
     let config:BindingConfig={
         packages:arr,
-        cppPath:"../zyndaurho3d/Source/Urho3D/JavaScript/easyBindings/jsbApis/",
+        cppPath:"../zyndaurho3d/Source/Urho3D/JavaScript/",
         registerTypes:registerType(),
         customize:registerCustomize(),
         jsbClassCtor:MyJSBClass,

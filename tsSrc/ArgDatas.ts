@@ -5,7 +5,17 @@ import { JSBClass } from "./binding/JSBClass";
 
 
 export type RegisterTypeMap={[name:string]:new(p: ts.TypeNode, def?: boolean) => ArgData};
+
+export interface TypeData{
+    nativeType:string;
+    type: string;
+    ref?:boolean;
+    toFunc():string;
+    pushFunc():string;
+    //isInternal:boolean;
+}
 export interface ArgData {
+    typeData?:TypeData;
     type: string;
     ignore?: boolean;
     /**是否引用类型 */
@@ -22,6 +32,7 @@ export interface ArgData {
  }
 
 export class ArgDataBase implements ArgData {
+    
     type: string;
     ignore?: boolean;
     ref?:boolean;

@@ -44,7 +44,7 @@ export function unrealConfig(){
     
     let config:BindingConfig={
         packages:arr,
-        cppPath:"../YoungGame/Source/YoungGame/JavaScript/easyBindings/jsbApis/",
+        cppPath:"../YoungGame/Source/YoungGame/JavaScript/",
         registerTypes:registerType(),
         customize:registerCustomize(),
         jsbClassCtor:MyJSBClass,

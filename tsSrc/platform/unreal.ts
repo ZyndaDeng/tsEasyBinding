@@ -1,4 +1,4 @@
-import { ArgData, ArgDataBase, DefaultPtrTypeArg, DefaultRefTypeArg, DefaultTypeArg, RegisterTypeMap, StringArg } from "../ArgDatas";
+import { ArgData, ArgDataBase, DefaultPtrTypeArg, DefaultRefTypeArg, DefaultTypeArg, IntArg, NumberArg, RegisterTypeMap, StringArg, UIntArg } from "../ArgDatas";
 import { BindingPackage } from "../BindingPackage";
 import { BindingConfig, SysEmitter } from "../emitter/SysEmitter";
 import * as ts from "typescript"
@@ -68,7 +68,76 @@ function registerType(){
             return "js_push_unreal_string(ctx,ret);"
         }
     }
+    
+
+
+    class UnrealTypeArg extends ArgDataBase{
+        constructor(p: ts.TypeNode, def?: boolean) {
+            super(p, def);
+            this.type = p.getText();
+        }
+        checkFunc(val: string): string {
+            return "js_is_native(ctx," + val + ",js_F"+this.type+"_id)";
+        }
+        getFunc(val: string,idx:number): string {
+            return "F"+this.type+" n" + idx + "= js_to_"+this.type+"(ctx, " + val + ");"
+        }
+        setFunc(): string {
+            return "js_push_"+this.type+"(ctx,ret);"
+        }
+    }
+
+    class FloatArg extends ArgDataBase {
+        constructor(p: ts.TypeNode, def?: boolean) {
+            super(p, def);
+            this.type = "float";
+        }
+        checkFunc(val: string): string {
+            return "JS_IsNumber(" + val + ")";
+        }
+        getFunc(val: string,idx:number): string {
+            return "float  n" + idx + "=0.0; JS_ToFloat64(ctx,&n"+idx+"," + val + ");"
+        }
+        setFunc(): string {
+            return "JS_NewFloat64(ctx,ret);"
+        }
+    }
+
+    class UnrealEnumArg extends ArgDataBase {
+        protected enumName;
+        constructor( p: ts.TypeNode, def?: boolean) {
+            super(p, def);
+            this.type = "int";
+            this.enumName=p.getText();
+        }
+        checkFunc(val: string): string {
+            return "JS_IsInteger(" + val + ")";
+        }
+        getFunc(val: string,idx:number): string {
+            return this.enumName + "::Type n" + idx + "=(" + this.enumName + "::Type) JS_VALUE_GET_INT(" + val + ");"
+        }
+        setFunc(): string {
+            return "JS_NewInt32(ctx,ret);"
+        }
+    }
+
+    ret["EAxis"]=UnrealEnumArg
     ret["FString"] = UnrealStringArg
+    ret["uint8"]=UIntArg
+    ret["uint32"]=UIntArg
+    ret["float"]=NumberArg
+    ret["Guid"] = UnrealTypeArg
+    ret["Box2D"] = UnrealTypeArg
+    ret["Color"] = UnrealTypeArg
+    ret["LinearColor"] = UnrealTypeArg
+    ret["Quat"] = UnrealTypeArg
+    ret["Rotator"] = UnrealTypeArg
+    ret["Transform"] = UnrealTypeArg
+    ret["Vector"] = UnrealTypeArg
+    ret["Vector2D"] = UnrealTypeArg
+    ret["Vector4"] = UnrealTypeArg
+    ret["IntPoint"] = UnrealTypeArg
+    ret["IntVector"] = UnrealTypeArg
     return ret;
 }
 

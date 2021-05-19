@@ -263,7 +263,11 @@ export function buildArgData(p: ts.TypeNode, def: boolean | undefined): ArgData 
     } else {
         let t = p.getText();
         if (enumDefined.includes(t)) {//枚举类型
-            ret = new EnumArg(t, p, def);
+            if(registerArgs[t]){
+                ret=new registerArgs[t](p,def);
+            }else{
+                ret = new EnumArg(t, p, def);
+            }  
         } else if (t.includes("Array")) {
             if(ts.isTypeReferenceNode(p)){
                 if(p.typeArguments){

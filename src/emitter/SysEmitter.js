@@ -172,7 +172,7 @@ class SysEmitter {
                 e.emitBinding();
             }
             writter.newLine().writeRightBracket().newLine();
-            fs.writeFile(Sys_1.Sys.getFullFileName(this.config.cppPath + a.name + ".cpp"), writter.str, { encoding: "UTF-8" }, (err) => {
+            fs.writeFile(Sys_1.Sys.getFullFileName(this.config.cppPath + "easyBindings/jsbApis/" + a.name + ".cpp"), writter.str, { encoding: "UTF-8" }, (err) => {
                 if (err) {
                     console.log("文件写入失败:" + err.message);
                 }

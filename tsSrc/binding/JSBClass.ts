@@ -31,7 +31,7 @@ export class JSBClass extends BaseBindingData {
         JSBNativeName(this,dec);
         this.finalizer="default_finalizer";
         if(JSBCommonClass(dec)){
-            this.finalizer="js_"+this.nativeName+"_finalizer";
+            this.finalizer="js_"+this.name+"_finalizer";
         }
         this.bindingType = "class";
         this.extend = "";

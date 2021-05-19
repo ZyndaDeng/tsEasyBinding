@@ -249,7 +249,12 @@ function buildArgData(p, def) {
     else {
         let t = p.getText();
         if (SysEmitter_1.enumDefined.includes(t)) { //枚举类型
-            ret = new EnumArg(t, p, def);
+            if (registerArgs[t]) {
+                ret = new registerArgs[t](p, def);
+            }
+            else {
+                ret = new EnumArg(t, p, def);
+            }
         }
         else if (t.includes("Array")) {
             if (ts.isTypeReferenceNode(p)) {

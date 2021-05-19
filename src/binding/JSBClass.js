@@ -18,7 +18,7 @@ class JSBClass extends BindingData_1.BaseBindingData {
         JSBCustomize_1.JSBNativeName(this, dec);
         this.finalizer = "default_finalizer";
         if (JSBCustomize_1.JSBCommonClass(dec)) {
-            this.finalizer = "js_" + this.nativeName + "_finalizer";
+            this.finalizer = "js_" + this.name + "_finalizer";
         }
         this.bindingType = "class";
         this.extend = "";

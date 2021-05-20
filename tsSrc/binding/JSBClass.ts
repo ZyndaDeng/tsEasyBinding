@@ -27,26 +27,34 @@ export class JSBClass extends BaseBindingData {
 
     constructor(dec: ts.ClassDeclaration) {
         super(dec.name ? dec.name.text : "");
-        this.nativeName=this.name;
-        JSBNativeName(this,dec);
-        this.finalizer="default_finalizer";
-        if(JSBCommonClass(dec)){
-            this.finalizer="js_"+this.name+"_finalizer";
-        }
-        this.bindingType = "class";
+        //记录继承关系
         this.extend = "";
         if (dec.heritageClauses) {
             let node = dec.heritageClauses[0];
             let t = node.types[0];
             this.extend = t.expression.getText();
         }
+        JSBClass.classes[this.name]=this;
+
+        this.defaultData(dec);
+        JSBNativeName(this,dec);
+        if(JSBCommonClass(dec)){
+            this.finalizer="js_"+this.name+"_finalizer";
+        }
+        this.bindingType = "class";
+        
         // this.includes="";
         this.methods = {};
         this.getters = {};
         //this.ctor = [];
 
         this.readClass(dec);
-        JSBClass.classes[this.name]=this;
+        
+    }
+    //默认初始值
+    protected defaultData(dec: ts.ClassDeclaration){
+        this.nativeName=this.name;
+        this.finalizer="default_finalizer";
     }
 
     static IsMyType(data: BindingData): data is JSBClass {
@@ -279,9 +287,9 @@ export class JSBClass extends BaseBindingData {
     // includes:string;
     //name: string;
     bindingType: "class";
-    nativeName: string;
+    nativeName!: string;
     extend: string;
-    finalizer:string;
+    finalizer!:string;
     ctor?: Array<ArgData>;
     customizeName?:string; 
     othersCtor?: Array<Array<ArgData>>;

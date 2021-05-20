@@ -3,6 +3,7 @@ import { BindingPackage } from "../BindingPackage";
 import { BindingConfig, SysEmitter } from "../emitter/SysEmitter";
 import * as ts from "typescript"
 import { JSBClass } from "../binding/JSBClass";
+import { ClassEmitter } from "../emitter/ClassEmitter";
 
 class MyJSBClass extends JSBClass{
 
@@ -22,6 +23,8 @@ class MyJSBClass extends JSBClass{
         }  
     }
 }
+
+ClassEmitter.IsUrho3d=true;
 
 export function urho3dConfig(){
     let arr = new Array<BindingPackage>();

@@ -3,18 +3,39 @@ import { BindingPackage } from "../BindingPackage";
 import { BindingConfig, SysEmitter } from "../emitter/SysEmitter";
 import * as ts from "typescript"
 import { JSBClass } from "../binding/JSBClass";
+import { JSBCommonClass } from "../binding/JSBCustomize";
 
 
 class MyJSBClass extends JSBClass{
 
-    
+    protected isUStruct?:boolean
+
     get classId(){
         
-        if(this.isInstanceof(JSBClass.classes["Object"])){
-            return "js_get_classID(ctx,"+this.nativeName + "::Class())->classID";
+        if(this.isUObject()){
+            return "js_get_classID("+this.nativeName + "::StaticClass())->classID";
+        }else if(this.isUStruct){
+            return "js_get_classID("+this.nativeName + "::StaticStruct())->classID";
         }else{
             return "js_"+this.nativeName+"_id";
         }  
+    }
+
+    protected isUObject(){
+        return this.name=="Object"||this.isInstanceof(JSBClass.classes["Object"]);
+    }
+
+    protected defaultData(dec: ts.ClassDeclaration){
+        if(this.isUObject()){
+            this.nativeName="U"+this.name;
+        }else{
+            if(!JSBCommonClass(dec)){
+                this.isUStruct=true;
+            }
+            this.nativeName="F"+this.name;
+        }
+
+        this.finalizer="default_finalizer";
     }
 }
 
@@ -29,6 +50,16 @@ export function unrealConfig(){
     "ContainerApi",
     [
         "../YoungGame/tsSrc/UE/Container.ts"
+    ]));
+    arr.push(new BindingPackage(`
+#include "UEApiHeaders.h"
+#include "CoreMinimal.h"
+#include "../ValTran.h"
+#include "../BindingSys.h"
+`,
+    "GameFrameWorkApi",
+    [
+        "../YoungGame/tsSrc/UE/UETest.ts"
     ]));
     // arr.push(new BindingPackage(`
     // #include "UEApiHeaders.h"

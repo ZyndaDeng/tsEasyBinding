@@ -418,13 +418,18 @@ export class ClassEmitter implements Emitter {
 
     }
 
+    static IsUrho3d:boolean;
+
     protected buildCtorFunc(w: Writter, args: ArgData[] | undefined) {
         let nativeName = this.data.nativeName;
-        let ctorFunc = " native=new " + nativeName + "(jsGetContext(ctx)";
-        let next = ",";
+        let ctorFunc = " native=new " + nativeName + "(";
+        let next = "";
         if(this.data.finalizer!="default_finalizer"){
             ctorFunc=" native=new " + nativeName + "(";
             next = "";
+        }else if(ClassEmitter.IsUrho3d){
+            ctorFunc=" native=new " + nativeName + "(jsGetContext(ctx)";
+            next = ",";
         }
         
         let idx = 0;

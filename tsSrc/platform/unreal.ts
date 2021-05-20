@@ -100,7 +100,18 @@ function registerType(){
         }
     }
     
-
+    class FNameArg extends ArgDataBase {
+        constructor(p: ts.TypeNode, def?: boolean) {
+            super(p, def);
+            this.type = "FName";
+        }
+        getFunc(val: string, idx: number): string {
+            return "FName n" + idx + "= js_to_string(ctx, " + val + ");"
+        }
+        setFunc(): string {
+            return "js_push_unreal_string(ctx,ret);"
+        }
+    }
 
     class UnrealTypeArg extends ArgDataBase{
         constructor(p: ts.TypeNode, def?: boolean) {
@@ -154,6 +165,7 @@ function registerType(){
 
     ret["EAxis"]=UnrealEnumArg
     ret["FString"] = UnrealStringArg
+    ret["FName"] = FNameArg
     ret["uint8"]=UIntArg
     ret["uint32"]=UIntArg
     ret["float"]=NumberArg

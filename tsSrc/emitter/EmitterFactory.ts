@@ -11,10 +11,17 @@ import { JSBFunction } from "../binding/JSBFunction";
 import { JSBVar } from "../binding/JSBVar";
 import { JSBModule } from "../binding/JSBModule";
 import { ModuleEmitter } from "./ModuleEmitter";
+import { Constructor } from "../utils";
+
+ let DefaultClassEmitter:Constructor<ClassEmitter>=ClassEmitter
+
+export function SetDefaultClassEmitter(ctor:Constructor<ClassEmitter>=ClassEmitter){
+    DefaultClassEmitter=ctor;
+}
 
 export function CreateEmitter(data:BaseBindingData,writter:Writter):Emitter{
     if(JSBClass.IsMyType(data)){
-        return new ClassEmitter(data,writter);
+        return new DefaultClassEmitter(data,writter);
     }else if(JSBNamespace.IsMyType(data)){
         return new NamespaceEmitter(data,writter);
     }else if(JSBFunction.IsMyType(data)){

@@ -10,6 +10,20 @@ import { JSBClass, MethodData, GetterData } from "../binding/JSBClass";
 export class ClassEmitter implements Emitter {
 
 
+    protected getExtendId(){
+        let extendId = "0";
+        if (this.data.extend.length > 0) {
+           
+            extendId = this.data.extend + "::GetTypeInfoStatic()->bindingId";
+            if (this.data.extend == "RefCounted") {
+                extendId = "js_RefCounted_id";
+            }else if(this.data.extend == "Object"){
+                extendId = "js_Object_id";
+            }
+        }
+        return extendId;
+    }
+
     emitDefine(): void {
 
         this.w.newLine();
@@ -107,16 +121,7 @@ export class ClassEmitter implements Emitter {
 
         
 
-        let extendId = "0";
-        if (this.data.extend.length > 0) {
-           
-            extendId = this.data.extend + "::GetTypeInfoStatic()->bindingId";
-            if (this.data.extend == "RefCounted") {
-                extendId = "js_RefCounted_id";
-            }else if(this.data.extend == "Object"){
-                extendId = "js_Object_id";
-            }
-        }
+        let extendId = this.getExtendId();
         let finalizer = this.data.finalizer;
         w.writeText("jsb::JSBClass c(ctx,(JSClassID*)&(" + this.data.classId + "),\"" + this.data.name + "\"," + this.ctorName() + "," + finalizer + "," + extendId + ");").newLine();
         if (hasMembers) w.writeText("c.setMembers(functions, countof(functions));").newLine();

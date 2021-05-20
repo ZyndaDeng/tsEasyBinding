@@ -4,6 +4,8 @@ import { BindingConfig, SysEmitter } from "../emitter/SysEmitter";
 import * as ts from "typescript"
 import { JSBClass } from "../binding/JSBClass";
 import { JSBCommonClass } from "../binding/JSBCustomize";
+import { ClassEmitter } from "../emitter/ClassEmitter";
+import {  SetDefaultClassEmitter } from "../emitter/EmitterFactory";
 
 
 class MyJSBClass extends JSBClass{
@@ -38,6 +40,19 @@ class MyJSBClass extends JSBClass{
         this.finalizer="default_finalizer";
     }
 }
+
+class MyClassEmitter extends ClassEmitter{
+    protected getExtendId(){
+        let extendId = "0";
+        if (this.data.extend.length > 0) {
+           
+            extendId ="js_get_classID(U"+this.data.extend + "::StaticClass())->classID"; 
+        }
+        return extendId;
+    }
+}
+
+SetDefaultClassEmitter(MyClassEmitter)
 
 export function unrealConfig(){
     let arr = new Array<BindingPackage>();
@@ -106,7 +121,7 @@ function registerType(){
             this.type = "FName";
         }
         getFunc(val: string, idx: number): string {
-            return "FName n" + idx + "= js_to_string(ctx, " + val + ");"
+            return "FName n" + idx + "= js_to_name(ctx, " + val + ");"
         }
         setFunc(): string {
             return "js_push_unreal_string(ctx,ret);"

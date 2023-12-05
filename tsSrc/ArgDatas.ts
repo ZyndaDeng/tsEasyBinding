@@ -233,7 +233,7 @@ export class NativeArg extends ArgDataBase {
         let jsbclass=JSBClass.classes[this.type];
         let classId=jsbclass?.classId;
         let type=jsbclass?jsbclass.nativeName:this.type;
-        if(!classId)classId=type + "::GetTypeInfoStatic()->bindingId";
+        if(!classId)classId=type + "::GetType()->scriptClassId";
         return "js_is_native(ctx," + val + ","+ classId+")";
     }
     getFunc(val: string,idx:number): string {
@@ -243,9 +243,9 @@ export class NativeArg extends ArgDataBase {
     }
     setFunc(): string {
         let classId=JSBClass.classes[this.type]?.classId;
-        if(classId&&classId.endsWith("->bindingId")){
+        if(classId&&classId.endsWith("->scriptClassId")){
             //classId="ret->GetTypeInfo()->bindingId";
-            return `js_push_urho3d_object(ctx,ret);`
+            return `js_push_native_object(ctx,ret);`
         }
         
         return `js_push_native_object(ctx,ret,` +classId  + `);`

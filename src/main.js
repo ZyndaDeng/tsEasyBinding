@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const unreal_1 = require("./platform/unreal");
+const once_1 = require("./platform/once/once");
 function main() {
-    unreal_1.unrealConfig();
+    (0, once_1.onceConfig)();
 }
 main();
 //# sourceMappingURL=main.js.map

@@ -2,12 +2,11 @@
 import * as path from "path"
 import * as fs from "fs"
 
-import { urho3dConfig } from "./platform/urho3d";
-import { unrealConfig } from "./platform/unreal";
+import { onceConfig } from "./platform/once/once";
 
 
 function main() {
-   unrealConfig();
+   onceConfig();
 }
 
 main();

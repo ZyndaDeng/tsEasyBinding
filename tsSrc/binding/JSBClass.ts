@@ -54,7 +54,7 @@ export class JSBClass extends BaseBindingData {
     //默认初始值
     protected defaultData(dec: ts.ClassDeclaration){
         this.nativeName=this.name;
-        this.finalizer="default_finalizer";
+        this.finalizer="native_finalizer";
     }
 
     static IsMyType(data: BindingData): data is JSBClass {
@@ -196,6 +196,8 @@ export class JSBClass extends BaseBindingData {
     }
      /**
      * 设置默认的getset变量对应规则
+     * @param name ts环境对应的变量名
+     * @param isGet 是否是get
      */
     protected defaultGetter(name: string, isGet: boolean) {
        return {name:name,isFunc:false};

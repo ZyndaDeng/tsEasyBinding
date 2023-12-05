@@ -10,7 +10,7 @@ export class JSBVar extends BaseBindingData{
     arg:ArgData
     nativeName:string
     constructor(node:ts.VariableDeclaration){
-        
+        let name = node.name?.getText();
         if (node.type) {
             super(node.name.getText())
             this.arg = buildArgData(node.type, undefined);

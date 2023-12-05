@@ -29,17 +29,17 @@ export function onceConfig(){
     arr.push(new BindingPackage(
         `#include "bindingImport.h"`,
         "CoreApi",
-        ["E:/Users/Mozat/Documents/Once/tsProj/once/Core.ts"]
+        ["E:/Users/Mozat/Documents/Once/tsProj/once/Core.d.ts"]
     ))
     arr.push(new BindingPackage(
         `#include "bindingImport.h"`,
         "VirtualSystemApi",
-        ["E:/Users/Mozat/Documents/Once/tsProj/once/VirtualSystem.ts"]
+        ["E:/Users/Mozat/Documents/Once/tsProj/once/VirtualSystem.d.ts"]
     ))
     arr.push(new BindingPackage(
         `#include "bindingImport.h"`,
         "MathApi",
-        ["E:/Users/Mozat/Documents/Once/tsProj/once/Math.ts"]
+        ["E:/Users/Mozat/Documents/Once/tsProj/once/Math.d.ts"]
     ))
 
     let config:BindingConfig={

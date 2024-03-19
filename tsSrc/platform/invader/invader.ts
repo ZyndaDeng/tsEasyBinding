@@ -2,7 +2,7 @@ import { ArgDataBase, RegisterTypeMap, StringArg } from "../../ArgDatas";
 import { BindingPackage } from "../../BindingPackage";
 import { JSBClass } from "../../binding/JSBClass";
 import * as ts from "typescript"
-import { BindingConfig, SysEmitter, enumDefined } from "../../emitter/SysEmitter";
+import { BindingConfig, SysEmitter } from "../../emitter/SysEmitter";
 
 
 class MyJSBClass extends JSBClass{
@@ -24,33 +24,36 @@ class MyJSBClass extends JSBClass{
     }
 }
 
-export function onceConfig(){
+export function invaderConfig(){
     let arr = new Array<BindingPackage>();
     arr.push(new BindingPackage(
         `#include "bindingImport.h"`,
         "CoreApi",
-        ["E:/Users/Mozat/Documents/Once/tsProj/once/Core.d.ts"]
+        ["E:/Users/Mozat/share/Invader_Clone/tsProj/once/Core.d.ts"]
     ))
     arr.push(new BindingPackage(
         `#include "bindingImport.h"`,
         "VirtualSystemApi",
-        ["E:/Users/Mozat/Documents/Once/tsProj/once/VirtualSystem.d.ts"]
+        ["E:/Users/Mozat/share/Invader_Clone/tsProj/once/VirtualSystem.d.ts"]
     ))
-    
+    arr.push(new BindingPackage(
+        `#include "bindingImport.h"`,
+        "MathApi",
+        ["E:/Users/Mozat/share/Invader_Clone/tsProj/once/Math.d.ts"]
+    ))
+    arr.push(new BindingPackage(
+        `#include "bindingImport.h"`,
+        "InvaderApi",
+        ["E:/Users/Mozat/share/Invader_Clone/tsProj/invaderNative/invader.d.ts"]
+    ))
 
     let config:BindingConfig={
         packages:arr,
-        cppPath:"E:/Users/Mozat/Documents/Once/Src/ScriptBinding/",
+        cppPath:"E:/Users/Mozat/share/Invader_Clone/libs/Once/Src/ScriptBinding/",
         jsbClassCtor:MyJSBClass,
         registerTypes:registerType(),
         customize:registerCustomize(),
     }
-    //外部的enum
-    enumDefined.push("ImagePixelFormat")
-    enumDefined.push("AttributeType")
-    enumDefined.push("PrimitiveType")
-    enumDefined.push("TextDrawAlign")
-    
 
     let sysEmit=new SysEmitter(config);
     sysEmit.emit();
@@ -72,64 +75,13 @@ function registerType(){
     }
     ret["String"] = BaseStringArg
 
-    class ArrayBufferArg extends ArgDataBase {
-        constructor(p: ts.TypeNode, def?: boolean) {
-            super(p, def);
-            this.type = "ArrayBuffer";
-        }
-        getFunc(val: string, idx: number): string {
-            return "ArrayBuffer n" + idx + "; js_to(ctx, " + val + ",n" + idx + ");"
-        }
-        setFunc(): string {
-            throw new Error("not defined");
-        }
-        checkFunc(val: string): string {
-            return "JS_IsObject(" + val + ")";
-        }
-    }
-    ret["ArrayBuffer"] = ArrayBufferArg
-
-    class VertexAttributeArg extends ArgDataBase {
-        constructor(p: ts.TypeNode, def?: boolean) {
-            super(p, def);
-            this.type = "VertexAttribute";
-        }
-        getFunc(val: string, idx: number): string {
-            return "VertexAttribute n" + idx + "; js_to(ctx, " + val + ",n" + idx + ");"
-        }
-        setFunc(): string {
-            throw new Error("not defined");
-        }
-        checkFunc(val: string): string {
-            return "JS_IsObject(" + val + ")";
-        }
-    }
-    ret["VertexAttribute"] = VertexAttributeArg
-
-    class ITextFormatArg extends ArgDataBase {
-        constructor(p: ts.TypeNode, def?: boolean) {
-            super(p, def);
-            this.type = "ITextFormat";
-        }
-        getFunc(val: string, idx: number): string {
-            return "ITextFormat n" + idx + "; js_to(ctx, " + val + ",n" + idx + ");"
-        }
-        setFunc(): string {
-            throw new Error("can not set ITextFormat")
-        }
-        checkFunc(val: string): string {
-            return "JS_IsObject(" + val + ")";
-        }
-    }
-    ret["ITextFormat"] = ITextFormatArg
-
     class IPaintArg extends ArgDataBase {
         constructor(p: ts.TypeNode, def?: boolean) {
             super(p, def);
             this.type = "IPaint";
         }
         getFunc(val: string, idx: number): string {
-            return "IPaint n" + idx + "; js_to(ctx, " + val + ",n" + idx + ");"
+            return "IPaint n" + idx + "; js_set_IPaint(ctx, " + val + ",n" + idx + ");"
         }
         setFunc(): string {
             return "js_push_IPaint(ctx,ret);"
@@ -140,165 +92,182 @@ function registerType(){
     }
     ret["IPaint"] = IPaintArg
 
+    class ITextFormatArg extends ArgDataBase {
+        constructor(p: ts.TypeNode, def?: boolean) {
+            super(p, def);
+            this.type = "ITextFormat";
+        }
+        getFunc(val: string, idx: number): string {
+            return "ITextFormat n" + idx + "; js_set_ITextFormat(ctx, " + val + ",n" + idx + ");"
+        }
+        setFunc(): string {
+            return "js_push_ITextFormat(ctx,ret);"
+        }
+        checkFunc(val: string): string {
+            return "JS_IsObject(" + val + ")";
+        }
+    }
+    ret["ITextFormat"] = ITextFormatArg
+
     class PointFArg extends ArgDataBase {
         constructor(p: ts.TypeNode, def?: boolean) {
             super(p, def);
-            this.type = "PointLike";
+            this.type = "Point";
         }
         getFunc(val: string, idx: number): string {
-            return "Point<float> n" + idx + "; js_to(ctx, " + val + ",n" + idx + ");"
+            return "Point<float> n" + idx + "; js_set_Point(ctx, " + val + ",n" + idx + ");"
         }
         setFunc(): string {
-            return "js_push(ctx,ret);"
+            return "js_push_Point<float>(ctx,ret);"
         }
         checkFunc(val: string): string {
             return "JS_IsObject(" + val + ")";
         }
     }
-    ret["PointLike<float>"] = PointFArg
+    ret["Point<float>"] = PointFArg
     class PointIArg extends ArgDataBase {
         constructor(p: ts.TypeNode, def?: boolean) {
             super(p, def);
-            this.type = "PointLike";
+            this.type = "Point";
         }
         getFunc(val: string, idx: number): string {
-            return "Point<int> n" + idx + "; js_to(ctx, " + val + ",n" + idx + ");"
+            return "Point<int> n" + idx + "; js_set_Point(ctx, " + val + ",n" + idx + ");"
         }
         setFunc(): string {
-            return "js_push(ctx,ret);"
+            return "js_push_Point<int>(ctx,ret);"
         }
         checkFunc(val: string): string {
             return "JS_IsObject(" + val + ")";
         }
     }
-    ret["PointLike<int>"] = PointIArg
-
-    class PointUIArg extends ArgDataBase {
-        constructor(p: ts.TypeNode, def?: boolean) {
-            super(p, def);
-            this.type = "PointLike";
-        }
-        getFunc(val: string, idx: number): string {
-            return "Point<unsigned> n" + idx + "; js_to(ctx, " + val + ",n" + idx + ");"
-        }
-        setFunc(): string {
-            return "js_push(ctx,ret);"
-        }
-        checkFunc(val: string): string {
-            return "JS_IsObject(" + val + ")";
-        }
-    }
-    ret["PointLike<uint>"] = PointUIArg
+    ret["Point<int>"] = PointIArg
 
     class SizeIArg extends ArgDataBase {
         constructor(p: ts.TypeNode, def?: boolean) {
             super(p, def);
-            this.type = "SizeLike";
+            this.type = "Size";
         }
         getFunc(val: string, idx: number): string {
-            return "Size<int> n" + idx + "; js_to(ctx, " + val + ",n" + idx + ");"
+            return "Size<int> n" + idx + "; js_set_Size(ctx, " + val + ",n" + idx + ");"
         }
         setFunc(): string {
-            return "js_push(ctx,ret);"
+            return "js_push_Size<int>(ctx,ret);"
         }
         checkFunc(val: string): string {
             return "JS_IsObject(" + val + ")";
         }
     }
-    ret["SizeLike<int>"] = SizeIArg
+    ret["Size<int>"] = SizeIArg
 
-    class SizeUArg extends ArgDataBase {
+    class SizeUIArg extends ArgDataBase {
         constructor(p: ts.TypeNode, def?: boolean) {
             super(p, def);
-            this.type = "SizeLike";
+            this.type = "Size";
         }
         getFunc(val: string, idx: number): string {
-            return "Size<unsigned> n" + idx + "; js_to(ctx, " + val + ",n" + idx + ");"
+            return "Size<unsigned int> n" + idx + "; js_set_Size(ctx, " + val + ",n" + idx + ");"
         }
         setFunc(): string {
-            return "js_push(ctx,ret);"
+            return "js_push_Size<unsigned int>(ctx,ret);"
         }
         checkFunc(val: string): string {
             return "JS_IsObject(" + val + ")";
         }
     }
-    ret["SizeLike<uint>"] = SizeUArg
+    ret["Size<uint>"] = SizeUIArg
+
+    class SizeFArg extends ArgDataBase {
+        constructor(p: ts.TypeNode, def?: boolean) {
+            super(p, def);
+            this.type = "Size";
+        }
+        getFunc(val: string, idx: number): string {
+            return "Size<float> n" + idx + "; js_set_Size(ctx, " + val + ",n" + idx + ");"
+        }
+        setFunc(): string {
+            return "js_push_Size<float>(ctx,ret);"
+        }
+        checkFunc(val: string): string {
+            return "JS_IsObject(" + val + ")";
+        }
+    }
+    ret["Size<float>"] = SizeFArg
 
     class RectFArg extends ArgDataBase {
         constructor(p: ts.TypeNode, def?: boolean) {
             super(p, def);
-            this.type = "RectLike";
+            this.type = "Rect";
         }
         getFunc(val: string, idx: number): string {
-            return "Rect<float> n" + idx + "; js_to(ctx, " + val + ",n" + idx + ");"
+            return "Rect<float> n" + idx + "; js_set_Rect(ctx, " + val + ",n" + idx + ");"
         }
         setFunc(): string {
-            return "js_push(ctx,ret);"
+            return "js_push_Rect<float>(ctx,ret);"
         }
         checkFunc(val: string): string {
             return "JS_IsObject(" + val + ")";
         }
     }
-    ret["RectLike<float>"] = RectFArg
+    ret["Rect<float>"] = RectFArg
 
     class RRectFArg extends ArgDataBase {
         constructor(p: ts.TypeNode, def?: boolean) {
             super(p, def);
-            this.type = "RRectLike";
+            this.type = "RRect";
         }
         getFunc(val: string, idx: number): string {
-            return "RRect<float> n" + idx + "; js_to(ctx, " + val + ",n" + idx + ");"
+            return "RRect<float> n" + idx + "; js_set_RRect(ctx, " + val + ",n" + idx + ");"
         }
         setFunc(): string {
-            return "js_push(ctx,ret);"
+            return "js_push_RRect<float>(ctx,ret);"
         }
         checkFunc(val: string): string {
             return "JS_IsObject(" + val + ")";
         }
     }
-    ret["RRectLike<float>"] = RRectFArg
+    ret["RRect<float>"] = RRectFArg
+
+    class BorderArg extends ArgDataBase {
+        constructor(p: ts.TypeNode, def?: boolean) {
+            super(p, def);
+            this.type = "Border";
+        }
+        getFunc(val: string, idx: number): string {
+            return "Border<float> n" + idx + "; js_set_Border(ctx, " + val + ",n" + idx + ");"
+        }
+        setFunc(): string {
+            return "js_push_Border<float>(ctx,ret);"
+        }
+        checkFunc(val: string): string {
+            return "JS_IsObject(" + val + ")";
+        }
+    }
+    ret["Border<float>"] = BorderArg
 
     class ColorBArg extends ArgDataBase {
         constructor(p: ts.TypeNode, def?: boolean) {
             super(p, def);
-            this.type = "ColorLike";
+            this.type = "Color";
         }
         getFunc(val: string, idx: number): string {
-            return "Color<byte> n" + idx + "; js_to(ctx, " + val + ",n" + idx + ");"
+            return "Color<byte> n" + idx + "; js_set_Color(ctx, " + val + ",n" + idx + ");"
         }
         setFunc(): string {
-            return "js_push(ctx,ret);"
+            return "js_push_Color<byte>(ctx,ret);"
         }
         checkFunc(val: string): string {
             return "JS_IsObject(" + val + ")";
         }
     }
-    ret["ColorLike<byte>"] = ColorBArg
-
-    class ColorFArg extends ArgDataBase {
-        constructor(p: ts.TypeNode, def?: boolean) {
-            super(p, def);
-            this.type = "ColorLike";
-        }
-        getFunc(val: string, idx: number): string {
-            return "Color<float> n" + idx + "; js_to(ctx, " + val + ",n" + idx + ");"
-        }
-        setFunc(): string {
-            return "js_push(ctx,ret);"
-        }
-        checkFunc(val: string): string {
-            return "JS_IsObject(" + val + ")";
-        }
-    }
-    ret["ColorLike<float>"] = ColorFArg
+    ret["Color<byte>"] = ColorBArg
 
     class Matrix3Arg extends ArgDataBase {
         constructor(p: ts.TypeNode, def?: boolean) {
             super(p, def);
-            this.type = "Matrix3Like";
+            this.type = "Matrix3";
         }
         getFunc(val: string, idx: number): string {
-            return "Matrix3 n" + idx + "; js_to(ctx, " + val + ",n" + idx + ");"
+            return "Matrix3 n" + idx + "; js_set_Matrix3(ctx, " + val + ",n" + idx + ");"
         }
         setFunc(): string {
             throw new Error("can not set matrix3")
@@ -307,83 +276,32 @@ function registerType(){
             return "JS_IsObject(" + val + ")";
         }
     }
-    ret["Matrix3Like"] = Matrix3Arg
+    ret["Matrix3"] = Matrix3Arg
 
-    class WindowSetupCBArg extends ArgDataBase {
+    class ITextureUVArg extends ArgDataBase {
         constructor(p: ts.TypeNode, def?: boolean) {
             super(p, def);
-            this.type = "WindowSetupCB";
+            this.type = "ITextureUV";
         }
         getFunc(val: string, idx: number): string {
-            return "auto n" + idx + "= js_to_WindowSetupCB(ctx, JS_UNDEFINED," + val  + ");"
+            return "auto n" + idx + "=js_to_tex(ctx, " + val +  ");"
         }
         setFunc(): string {
-            throw new Error("not defined");
+            throw new Error("can not set matrix3")
         }
         checkFunc(val: string): string {
-            return "(JS_IsFunction(ctx," + val + ")||JS_IsUndefined(" + val + "))";
+            return "JS_IsObject(" + val + ")";
         }
     }
-    ret["WindowSetupCB"] = WindowSetupCBArg
+    ret["ITextureUV"] = ITextureUVArg
 
-    class WindowRunCBArg extends ArgDataBase {
+    class WindowDrawCBArg extends ArgDataBase {
         constructor(p: ts.TypeNode, def?: boolean) {
             super(p, def);
-            this.type = "WindowRunCB";
+            this.type = "WindowDrawCB";
         }
         getFunc(val: string, idx: number): string {
-            return "auto n" + idx + "= js_to_WindowRunCB(ctx, JS_UNDEFINED," + val  + ");"
-        }
-        setFunc(): string {
-            throw new Error("not defined");
-        }
-        checkFunc(val: string): string {
-            return "(JS_IsFunction(ctx," + val + ")||JS_IsUndefined(" + val + "))";
-        }
-    }
-    ret["WindowRunCB"] = WindowRunCBArg
-
-    class MouseBtnCBArg extends ArgDataBase {
-        constructor(p: ts.TypeNode, def?: boolean) {
-            super(p, def);
-            this.type = "MouseBtnCallback";
-        }
-        getFunc(val: string, idx: number): string {
-            return "auto n" + idx + "= js_to_MouseBtnCB(ctx, JS_UNDEFINED," + val  + ");"
-        }
-        setFunc(): string {
-            throw new Error("not defined");
-        }
-        checkFunc(val: string): string {
-            return "(JS_IsFunction(ctx," + val + ")||JS_IsUndefined(" + val + "))";
-        }
-    }
-    ret["MouseBtnCallback"] = MouseBtnCBArg
-
-    class MouseMoveCBArg extends ArgDataBase {
-        constructor(p: ts.TypeNode, def?: boolean) {
-            super(p, def);
-            this.type = "MouseMoveCallback";
-        }
-        getFunc(val: string, idx: number): string {
-            return "auto n" + idx + "= js_to_MouseMoveCB(ctx, JS_UNDEFINED," + val  + ");"
-        }
-        setFunc(): string {
-            throw new Error("not defined");
-        }
-        checkFunc(val: string): string {
-            return "(JS_IsFunction(ctx," + val + ")||JS_IsUndefined(" + val + "))";
-        }
-    }
-    ret["MouseMoveCallback"] = MouseMoveCBArg
-
-    class ReadFileCBArg extends ArgDataBase {
-        constructor(p: ts.TypeNode, def?: boolean) {
-            super(p, def);
-            this.type = "ReadFileCallback";
-        }
-        getFunc(val: string, idx: number): string {
-            return "auto n" + idx + "= js_to_ReadFileCB(ctx, JS_UNDEFINED," + val  + ");"
+            return "auto n" + idx + "= js_to_WindowDrawCB(ctx, JS_UNDEFINED," + val  + ");"
         }
         setFunc(): string {
             throw new Error("not defined");
@@ -392,7 +310,24 @@ function registerType(){
             return "JS_IsFunction(ctx," + val + ")";
         }
     }
-    ret["ReadFileCallback"] = ReadFileCBArg
+    ret["WindowDrawCB"] = WindowDrawCBArg
+
+    class MouseEventCBArg extends ArgDataBase {
+        constructor(p: ts.TypeNode, def?: boolean) {
+            super(p, def);
+            this.type = "MouseCallback";
+        }
+        getFunc(val: string, idx: number): string {
+            return "auto n" + idx + "= js_to_MouseEventCB(ctx, JS_UNDEFINED," + val  + ");"
+        }
+        setFunc(): string {
+            throw new Error("not defined");
+        }
+        checkFunc(val: string): string {
+            return "JS_IsFunction(ctx," + val + ")";
+        }
+    }
+    ret["MouseCallback"] = MouseEventCBArg
 
     class KeyEventCBArg extends ArgDataBase {
         constructor(p: ts.TypeNode, def?: boolean) {
@@ -406,43 +341,44 @@ function registerType(){
             throw new Error("not defined");
         }
         checkFunc(val: string): string {
-            return "(JS_IsFunction(ctx," + val + ")||JS_IsUndefined(" + val + "))";
+            return "JS_IsFunction(ctx," + val + ")";
         }
     }
     ret["KeyboardCallback"] = KeyEventCBArg
-    class CharInputCBArg extends ArgDataBase {
-        constructor(p: ts.TypeNode, def?: boolean) {
-            super(p, def);
-            this.type = "CharInputCallback";
-        }
-        getFunc(val: string, idx: number): string {
-            return "auto n" + idx + "= js_to_CharInputCB(ctx, JS_UNDEFINED," + val  + ");"
-        }
-        setFunc(): string {
-            throw new Error("not defined");
-        }
-        checkFunc(val: string): string {
-            return "(JS_IsFunction(ctx," + val + ")||JS_IsUndefined(" + val + "))";
-        }
-    }
-    ret["CharInputCallback"] = CharInputCBArg
 
-    class SizeICBArg extends ArgDataBase {
+    class TouchEventCBArg extends ArgDataBase {
         constructor(p: ts.TypeNode, def?: boolean) {
             super(p, def);
-            this.type = "SizeICB";
+            this.type = "TouchCallback";
         }
         getFunc(val: string, idx: number): string {
-            return "auto n" + idx + "= js_to_SizeICB(ctx, JS_UNDEFINED," + val  + ");"
+            return "auto n" + idx + "= js_to_TouchEventCB(ctx, JS_UNDEFINED," + val  + ");"
         }
         setFunc(): string {
             throw new Error("not defined");
         }
         checkFunc(val: string): string {
-            return "(JS_IsFunction(ctx," + val + ")||JS_IsUndefined(" + val + "))";
+            return "JS_IsFunction(ctx," + val + ")";
         }
     }
-    ret["SizeICB"] = SizeICBArg
+    ret["TouchCallback"] = TouchEventCBArg
+
+    class LoopEventCBArg extends ArgDataBase {
+        constructor(p: ts.TypeNode, def?: boolean) {
+            super(p, def);
+            this.type = "LoopCallback";
+        }
+        getFunc(val: string, idx: number): string {
+            return "auto n" + idx + "= js_to_LoopCB(ctx, JS_UNDEFINED," + val  + ");"
+        }
+        setFunc(): string {
+            throw new Error("not defined");
+        }
+        checkFunc(val: string): string {
+            return "JS_IsFunction(ctx," + val + ")";
+        }
+    }
+    ret["LoopCallback"] = LoopEventCBArg
 
     ret["K"] = BaseStringArg;
     class ServiceNamesArg extends ArgDataBase {
@@ -464,26 +400,6 @@ function registerType(){
         }
     }
     ret["ServiceNames[K]"] = ServiceNamesArg
-
-    class ResourceNamesArg extends ArgDataBase {
-        constructor(p: ts.TypeNode, def?: boolean) {
-            super(p, def);
-            this.type = "Object";
-        }
-        checkFunc(val: string): string {
-            let classId = JSBClass.classes[this.type]?.classId;
-            if (!classId) classId = "js_Object_id";
-            return "js_is_native(ctx," + val + "," + classId + ")";
-        }
-        getFunc(val: string, idx: number): string {
-
-            return this.type + "* n" + idx + "=js_to_native_object<" + this.type + ">(ctx," + val + ");"
-        }
-        setFunc(): string {
-            return `js_push_native_object(ctx,ret);`
-        }
-    }
-    ret["ResourceType[K]"] = ResourceNamesArg
 
     return ret;
 }

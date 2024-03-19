@@ -75,6 +75,22 @@ export class IntArg extends ArgDataBase {
     }
 }
 
+export class Int64Arg extends ArgDataBase {
+    constructor(p: ts.TypeNode, def?: boolean) {
+        super(p, def);
+        this.type = "int64";
+    }
+    checkFunc(val: string): string {
+        return "JS_IsInteger(" + val + ")";
+    }
+    getFunc(val: string,idx:number): string {
+        return "long long n" + idx + "; JS_ToInt64(ctx,&n"+idx+"," + val + ");"
+    }
+    setFunc(): string {
+        return "JS_NewInt64(ctx,ret);"
+    }
+}
+
 export class EnumArg extends ArgDataBase {
     constructor(protected enumName: string, p: ts.TypeNode, def?: boolean) {
         super(p, def);
@@ -87,7 +103,7 @@ export class EnumArg extends ArgDataBase {
         return this.enumName + " n" + idx + "=(" + this.enumName + ") JS_VALUE_GET_INT(" + val + ");"
     }
     setFunc(): string {
-        return "JS_NewInt32(ctx,ret);"
+        return "JS_NewInt32(ctx,(int)ret);"
     }
 }
 
@@ -106,6 +122,8 @@ export class UIntArg extends ArgDataBase {
         return "JS_NewInt32(ctx,ret);"
     }
 }
+
+
 
 export class NumberArg extends ArgDataBase {
     constructor(p: ts.TypeNode, def?: boolean) {
@@ -149,13 +167,15 @@ export class ArrayArg extends ArgDataBase {
     }
     getFunc(val: string,idx:number): string {
         if(this.typeName=="String"||this.typeName=="string"){
-            return "StringVector n"+idx+"; js_to_normal_array(ctx,"+val+",n"+idx+",JS_ToCString);"
+            return "Vector<String> n"+idx+"; js_to_normal_array(ctx,"+val+",n"+idx+",js_to_string);"
         }else if(this.typeName=="Variant"){
             return "VariantVector n"+idx+"; js_to_VariantVector(ctx,"+val+",n"+idx+");"
         }else if(this.typeName=="number"){
             return "Vector<float> n"+idx+"; js_to_normal_array(ctx,"+val+",n"+idx+",js_to_number);"
+        }else if(this.typeName=="Point<float>"){
+            return "Vector<Point<float>> n"+idx+"; js_to_normal_array_ref(ctx,"+val+",n"+idx+",js_set_Point<float>);"
         }else{
-            return "PODVector<"+this.typeName+"*> n"+idx+"; js_to_native_array(ctx,"+val+",n"+idx+");"
+            return "Vector<"+this.typeName+"> n"+idx+"; js_to_normal_array(ctx,"+val+",n"+idx+");"
         }
        
         //return "Vector2 n" + idx + "= js_to_vector2(ctx, " + idx + ");"
@@ -268,7 +288,7 @@ export function buildArgData(p: ts.TypeNode, def: boolean | undefined): ArgData 
             }else{
                 ret = new EnumArg(t, p, def);
             }  
-        } else if (t.includes("Array")) {
+        } else if (t.includes("Array")&&t!="ArrayBuffer") {
             if(ts.isTypeReferenceNode(p)){
                 if(p.typeArguments){
                     let typeName=p.typeArguments[0].getText();
@@ -281,9 +301,13 @@ export function buildArgData(p: ts.TypeNode, def: boolean | undefined): ArgData 
             } 
         }else if ("int" == t) {
             ret = new IntArg(p, def);
+        }else if ("int64" == t) {
+            ret = new Int64Arg(p, def);
         } else if ("uint" == t) {
             ret = new UIntArg(p, def);
-        } else if(registerArgs[t]){
+        } else if ("float" == t) {
+            ret = new NumberArg(p, def);
+        }else if(registerArgs[t]){
             ret=new registerArgs[t](p,def);
         }else {
             ret = new NativeArg(p, def);

@@ -14,7 +14,7 @@ export class ClassEmitter implements Emitter {
         let extendId = "0";
         if (this.data.extend.length > 0) {
            
-            extendId = this.data.extend + "::GetTypeInfoStatic()->bindingId";
+            extendId = this.data.extend + "::GetType()->scriptClassId";
             if (this.data.extend == "RefCounted") {
                 extendId = "js_RefCounted_id";
             }else if(this.data.extend == "Object"){
@@ -155,9 +155,9 @@ export class ClassEmitter implements Emitter {
         w.writeText("if(native)").writeLeftBracket().newLine();
         w.writeText("JSValue ret = JS_NewObjectClass(ctx, " + this.data.classId + ");").newLine();
         if(this.data.finalizer=="default_finalizer"){
-            w.writeText("Add_Object(ret,native);").newLine();
-        }else{
             w.writeText("JS_SetOpaque(ret, native);").newLine();
+        }else{
+            w.writeText("Add_Object(ret,native);").newLine();
         }
         
         w.writeText("return ret;").newLine();
@@ -391,22 +391,7 @@ export class ClassEmitter implements Emitter {
     protected buildNativeCtor(w: Writter) {
         let nativeName = this.data.nativeName;
 
-        //w.writeText("bool isWeak=false;").newLine();
         w.writeText(nativeName + "* native=nullptr;").newLine();
-        // w.writeText("duk_push_heap_stash(ctx);//[stash]").newLine();
-        // w.writeText("duk_get_prop_string(ctx,-1,jsNewObjWithNative);//[stash,pointer]").newLine();
-        // w.writeText("if(duk_is_pointer(ctx,-1))").writeLeftBracket().newLine();
-        // w.writeText("native=("+nativeName+" *)duk_get_pointer(ctx,-1);").newLine();
-        // w.writeText("duk_get_prop_string(ctx,-2,jsIsWeakObj);//[stash,pointer,isWeak]").newLine();
-        // w.writeText("isWeak=duk_to_boolean(ctx,-1);").newLine();
-        // w.writeText("duk_pop(ctx);//[stash,pointer]").newLine();
-        // w.writeText("duk_push_nan(ctx);//[stash,pointer,nan]").newLine();
-        // w.writeText("duk_put_prop_string(ctx,-3,jsNewObjWithNative);//[stash,pointer]").newLine();
-        // w.writeText("duk_push_nan(ctx);//[stash,pointer,nan]").newLine();
-        // w.writeText("duk_put_prop_string(ctx,-3,jsIsWeakObj);//[stash,pointer]").newLine();
-        // w.writeText("duk_pop_2(ctx);//[]").newLine();
-        // w.writeRightBracket().writeText("else").writeLeftBracket().newLine();
-        // w.writeText("duk_pop_2(ctx);//[]").newLine();
         if (this.data.ctor) {
             this.buildCtorWithArg(w, this.data.ctor);
             if (this.data.othersCtor) {

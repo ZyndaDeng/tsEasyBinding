@@ -50,6 +50,7 @@ export function onceConfig(){
     enumDefined.push("AttributeType")
     enumDefined.push("PrimitiveType")
     enumDefined.push("TextDrawAlign")
+    enumDefined.push("UrlType")
     
 
     let sysEmit=new SysEmitter(config);

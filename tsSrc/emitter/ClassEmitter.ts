@@ -68,7 +68,7 @@ export class ClassEmitter implements Emitter {
      * 创建对象的绑定主函数
      */
     protected buildMain(w: Writter) {
-        w.writeText("jsb::Value " + this.apiName() + "( jsb::Context& ctx)").newLine().writeLeftBracket().newLine();
+        w.writeText("static jsb::Value " + this.apiName() + "( jsb::Context& ctx)").newLine().writeLeftBracket().newLine();
 
 
         let funcs = new Array<MethodData>();
@@ -133,7 +133,7 @@ export class ClassEmitter implements Emitter {
 
     protected buildFinalizer() {
         let w = this.w;
-        w.writeText("void " + this.finalizerName() + "(JSRuntime* rt, JSValue val)").newLine();
+        w.writeText("static void " + this.finalizerName() + "(JSRuntime* rt, JSValue val)").newLine();
         w.writeLeftBracket().newLine();
         w.writeText(this.data.nativeName + "* native=(" + this.data.nativeName + "*) JS_GetOpaque(val, " + this.data.classId + ");");
         w.writeText("delete native;").newLine();
@@ -146,7 +146,7 @@ export class ClassEmitter implements Emitter {
      */
     protected buildCtor() {
         let w = this.w;
-        w.writeText("JSValue " + this.ctorName() + "(JSContext* ctx, JSValueConst this_val,int argc, JSValueConst* argv)").newLine();
+        w.writeText("static JSValue " + this.ctorName() + "(JSContext* ctx, JSValueConst this_val,int argc, JSValueConst* argv)").newLine();
         w.writeLeftBracket().newLine();
 
 
@@ -256,7 +256,7 @@ export class ClassEmitter implements Emitter {
         if (f.customize) {
             w.writeText(customize[f.customize]);
         } else {
-            w.writeText("JSValue " + this.functionName(f) + "(JSContext* ctx, JSValueConst this_val,int argc, JSValueConst* argv)").newLine();
+            w.writeText("static JSValue " + this.functionName(f) + "(JSContext* ctx, JSValueConst this_val,int argc, JSValueConst* argv)").newLine();
             w.writeLeftBracket().newLine();
 
             let next = () => { w.writeText("") }
@@ -293,7 +293,7 @@ export class ClassEmitter implements Emitter {
     protected buildGetter(w: Writter, g: GetterData) {
 
         if (g.get) {
-            w.writeText("JSValue " + this.getterName(g, true) + "(JSContext* ctx, JSValueConst this_val)").newLine();
+            w.writeText("static JSValue " + this.getterName(g, true) + "(JSContext* ctx, JSValueConst this_val)").newLine();
             w.writeLeftBracket().newLine();
 
             let nativeName = this.data.name;
@@ -315,7 +315,7 @@ export class ClassEmitter implements Emitter {
         }
         w.newLine();
         if (g.set) {
-            w.writeText("JSValue " + this.getterName(g, false) + "(JSContext* ctx, JSValueConst this_val, JSValueConst val)").newLine();
+            w.writeText("static JSValue " + this.getterName(g, false) + "(JSContext* ctx, JSValueConst this_val, JSValueConst val)").newLine();
             w.writeLeftBracket().newLine();
 
             let nativeName = this.data.name;

@@ -198,7 +198,7 @@ export class SysEmitter {
                 e.emitDefine();
             }
             writter.newLine();
-            writter.writeText("void " + this.packageName(a) + "( jsb::Context& ctx)").writeLeftBracket().newLine();
+            writter.writeText(" void " + this.packageName(a) + "( jsb::Context& ctx)").writeLeftBracket().newLine();
             for (let e of emitters) {
                 e.emitBinding();
             }

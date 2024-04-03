@@ -181,16 +181,16 @@ export class ArrayArg extends ArgDataBase {
         //return "Vector2 n" + idx + "= js_to_vector2(ctx, " + idx + ");"
     }
     setFunc(): string {
-        if(this.typeName=="String"||this.typeName=="string"){
-            return "js_push_StringVector(ctx,ret);"
-        }else if(this.typeName=="Variant"){
-            return "js_push_VariantVector(ctx,ret);"
-        }else if(this.typeName=="int"||this.typeName=="uint"){
-            return "js_push_normal_array(ctx,ret,JS_NewInt32);"
-        }else if(this.typeName=="number"){
-            return "js_push_normal_array(ctx,ret,JS_NewFloat64);"
-        }
-        return "js_push_native_array(ctx,ret);"
+        // if(this.typeName=="String"||this.typeName=="string"){
+        //     return "js_push_StringVector(ctx,ret);"
+        // }else if(this.typeName=="Variant"){
+        //     return "js_push_VariantVector(ctx,ret);"
+        // }else if(this.typeName=="int"||this.typeName=="uint"){
+        //     return "js_push_normal_array(ctx,ret,JS_NewInt32);"
+        // }else if(this.typeName=="number"){
+        //     return "js_push_normal_array(ctx,ret,JS_NewFloat64);"
+        // }
+        return "js_push_normal_array(ctx,ret);"
     }
 }
 

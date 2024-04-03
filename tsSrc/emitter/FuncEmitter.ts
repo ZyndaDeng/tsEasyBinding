@@ -14,7 +14,7 @@ export class FuncEmitter implements Emitter {
 
     emitDefine(): void {
         let w = this.w;
-        w.writeText("JSValue " + this.name() + "(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv)").writeLeftBracket().newLine();
+        w.writeText("static JSValue " + this.name() + "(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv)").writeLeftBracket().newLine();
         let next = "";
         if (this.data.args.length > 0) {
             w.writeText("if(").newLine();

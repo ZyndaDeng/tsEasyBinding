@@ -51,6 +51,7 @@ export function onceConfig(){
     enumDefined.push("PrimitiveType")
     enumDefined.push("TextDrawAlign")
     enumDefined.push("UrlType")
+    enumDefined.push("FileEvent")
     
 
     let sysEmit=new SysEmitter(config);
@@ -225,6 +226,23 @@ function registerType(){
     }
     ret["SizeLike<uint>"] = SizeUArg
 
+    class RectIArg extends ArgDataBase {
+        constructor(p: ts.TypeNode, def?: boolean) {
+            super(p, def);
+            this.type = "RectLike";
+        }
+        getFunc(val: string, idx: number): string {
+            return "Rect<int> n" + idx + "; js_to(ctx, " + val + ",n" + idx + ");"
+        }
+        setFunc(): string {
+            return "js_push(ctx,ret);"
+        }
+        checkFunc(val: string): string {
+            return "JS_IsObject(" + val + ")";
+        }
+    }
+    ret["RectLike<int>"] = RectIArg
+
     class RectFArg extends ArgDataBase {
         constructor(p: ts.TypeNode, def?: boolean) {
             super(p, def);
@@ -310,6 +328,23 @@ function registerType(){
     }
     ret["Matrix3Like"] = Matrix3Arg
 
+    class CharGraphArg extends ArgDataBase {
+        constructor(p: ts.TypeNode, def?: boolean) {
+            super(p, def);
+            this.type = "ICharGraph";
+        }
+        getFunc(val: string, idx: number): string {
+           throw new Error("can not get ICharGraph")
+        }
+        setFunc(): string {
+           return "js_push(ctx,ret);"
+        }
+        checkFunc(val: string): string {
+            return "JS_IsObject(" + val + ")";
+        }
+    }
+    ret["ICharGraph"] = CharGraphArg
+
     class WindowSetupCBArg extends ArgDataBase {
         constructor(p: ts.TypeNode, def?: boolean) {
             super(p, def);
@@ -394,6 +429,23 @@ function registerType(){
         }
     }
     ret["ReadFileCallback"] = ReadFileCBArg
+
+    class WatchFileCBArg extends ArgDataBase {
+        constructor(p: ts.TypeNode, def?: boolean) {
+            super(p, def);
+            this.type = "WatchFileCallback";
+        }
+        getFunc(val: string, idx: number): string {
+            return "auto n" + idx + "= js_to_WatchFileCB(ctx, JS_UNDEFINED," + val  + ");"
+        }
+        setFunc(): string {
+            throw new Error("not defined");
+        }
+        checkFunc(val: string): string {
+            return "JS_IsFunction(ctx," + val + ")";
+        }
+    }
+    ret["WatchFileCallback"] = WatchFileCBArg
 
     class KeyEventCBArg extends ArgDataBase {
         constructor(p: ts.TypeNode, def?: boolean) {

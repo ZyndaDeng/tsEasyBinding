@@ -320,7 +320,7 @@ function registerType(){
             return "Matrix3 n" + idx + "; js_to(ctx, " + val + ",n" + idx + ");"
         }
         setFunc(): string {
-            throw new Error("can not set matrix3")
+            return "js_push(ctx,ret);"
         }
         checkFunc(val: string): string {
             return "JS_IsObject(" + val + ")";

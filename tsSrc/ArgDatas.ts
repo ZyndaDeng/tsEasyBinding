@@ -172,8 +172,8 @@ export class ArrayArg extends ArgDataBase {
             return "VariantVector n"+idx+"; js_to_VariantVector(ctx,"+val+",n"+idx+");"
         }else if(this.typeName=="number"){
             return "Vector<float> n"+idx+"; js_to_normal_array(ctx,"+val+",n"+idx+",js_to_number);"
-        }else if(this.typeName=="Point<float>"){
-            return "Vector<Point<float>> n"+idx+"; js_to_normal_array_ref(ctx,"+val+",n"+idx+",js_set_Point<float>);"
+        }else if(this.typeName=="PointLike<float>"){
+            return "Vector<Point<float>> n"+idx+"; js_to_normal_array(ctx,"+val+",n"+idx+");"
         }else{
             return "Vector<"+this.typeName+"> n"+idx+"; js_to_normal_array(ctx,"+val+",n"+idx+");"
         }

@@ -1,13 +1,14 @@
 
 import * as path from "path"
 import * as fs from "fs"
+import { sampleConfig } from "./platform/example/sample";
 
-import { onceConfig } from "./platform/once/once";
-import { invaderConfig } from "./platform/invader/invader";
+
+
 
 
 function main() {
-   onceConfig();
+   sampleConfig();
 }
 
 main();

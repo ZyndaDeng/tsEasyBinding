@@ -1,8 +1,7 @@
-import * as ts from "typescript"
-import { buildArgData } from "../ArgDatas";
-import { Writter } from "../writter";
-import { Emitter, IExport } from "./Emitter";
-import { JSBFunction } from "../binding/JSBFunction";
+
+import { Writter } from "../../writter";
+import { Emitter, IExport } from "../Emitter";
+import { JSBFunction } from "../../binding/JSBFunction";
 
 export class FuncEmitter implements Emitter {
    

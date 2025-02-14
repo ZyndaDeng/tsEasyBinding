@@ -35,6 +35,7 @@ export function sampleConfig(){
         packages:arr,
         cppPath:"c++/example/ScriptBinding/",
         jsbClassCtor:MyJSBClass,
+        engine:"qjs",
         registerTypes:registerType(),
         customize:registerCustomize(),
     }

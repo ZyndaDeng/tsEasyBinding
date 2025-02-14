@@ -1,5 +1,5 @@
-import { ArgData, TypeData } from "../ArgDatas";
-import { Writter } from "../writter";
+import { ArgData, TypeData } from "../../ArgDatas";
+import { Writter } from "../../writter";
 
 export interface MemberMap{
 

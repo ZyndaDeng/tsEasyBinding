@@ -35,13 +35,13 @@ export class Writter{
         return this;
     }
 
-    writeOpenModule(modName:string){
-       return this.writeText("js_open_module(ctx,\""+modName+"\");");
-    }
+    // writeOpenModule(modName:string){
+    //    return this.writeText("js_open_module(ctx,\""+modName+"\");");
+    // }
 
-    writeCloseModule(modName:string){
-        return this.writeText("js_close_module(ctx,\""+modName+"\");");
-    }
+    // writeCloseModule(modName:string){
+    //     return this.writeText("js_close_module(ctx,\""+modName+"\");");
+    // }
 
     protected isNewLine(){
         let ret=this.isNewLine_;

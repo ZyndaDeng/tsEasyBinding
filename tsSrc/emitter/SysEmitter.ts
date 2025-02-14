@@ -4,10 +4,7 @@ import { Sys } from "../Sys";
 import * as ts from "typescript"
 import { Writter } from "../writter";
 import { Emitter } from "./Emitter";
-import { ClassEmitter } from "./ClassEmitter";
-import { NamespaceEmitter } from "./NamespaceEmitter";
-import { FuncEmitter } from "./FuncEmitter";
-import { CreateEmitter } from "./EmitterFactory";
+import { ClassEmitter } from "./qjs/ClassEmitter";
 import { JSBNamespace } from "../binding/JSBNamespace";
 import { JSBClass } from "../binding/JSBClass";
 import { JSBFunction } from "../binding/JSBFunction";
@@ -15,6 +12,9 @@ import { JSBVar } from "../binding/JSBVar";
 import { JSBModule } from "../binding/JSBModule";
 import { RegisterMyType, RegisterTypeMap } from "../ArgDatas";
 import { Constructor } from "../utils";
+import { IEmitterFactory } from "./EmitterFactory";
+import { QjsEmitterFactory } from "./qjs/QjsEmitterFactory";
+import { V8EmitterFactory } from "./v8/V8EmitterFactory";
 
 export interface IBindingPackage {
     includeStr: string;
@@ -22,10 +22,13 @@ export interface IBindingPackage {
     name: string;
 }
 
+export type JsEngine="v8"|"qjs"
+
 export interface BindingConfig {
     packages: IBindingPackage[];
     cppPath: string;
     registerTypes:RegisterTypeMap;
+    engine:JsEngine;
     /**自定义的转换函数 */
     customize: { [name: string]: string }
     jsbClassCtor?:Constructor<JSBClass>
@@ -42,6 +45,7 @@ export class SysEmitter {
     protected processData: Array<BaseBindingData>;
     protected isInDeclare: boolean;
     protected jsbClassCtor:Constructor<JSBClass>
+    protected emitterFactory:IEmitterFactory
 
     constructor(protected config: BindingConfig) {
         //this.enumDefined = [];
@@ -50,11 +54,17 @@ export class SysEmitter {
         this.isInDeclare = false;
         // this.shouldFirstDefineList = [];
         // this.undefineList = {};
+        //let ctor:Constructor<JSBClass>=JSBClass;
+        this.jsbClassCtor=JSBClass;
         if(config.jsbClassCtor){
             this.jsbClassCtor=config.jsbClassCtor;
-        }else{
-            this.jsbClassCtor=JSBClass;
         }
+        if(config.engine=="qjs"){
+            this.emitterFactory=new QjsEmitterFactory();
+        }else{
+            this.emitterFactory=new V8EmitterFactory();
+        }
+        
     }
 
     openModule(module: ModuleData) {
@@ -192,13 +202,13 @@ export class SysEmitter {
             let writter = new Writter(a.includeStr).newLine();
             let emitters = new Array<Emitter>();
             for (let d of pData) {
-                emitters.push(CreateEmitter(d, writter));
+                emitters.push(this.emitterFactory.createEmitter(d, writter));
             }
             for (let e of emitters) {
                 e.emitDefine();
             }
             writter.newLine();
-            writter.writeText(" void " + this.packageName(a) + "( jsb::Context& ctx)").writeLeftBracket().newLine();
+            writter.writeText(" void " + this.packageName(a) + "( V8JS::JSContext* ctx)").writeLeftBracket().newLine();
             for (let e of emitters) {
                 e.emitBinding();
             }

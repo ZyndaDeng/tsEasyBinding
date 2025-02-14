@@ -1,7 +1,7 @@
-import { ArgData } from "../ArgDatas";
-import { Writter } from "../writter";
-import { Emitter, IExport } from "./Emitter";
-import { JSBVar } from "../binding/JSBVar";
+
+import { Writter } from "../../writter";
+import { Emitter, IExport } from "../Emitter";
+import { JSBVar } from "../../binding/JSBVar";
 
 export class VarEmitter implements Emitter{
     

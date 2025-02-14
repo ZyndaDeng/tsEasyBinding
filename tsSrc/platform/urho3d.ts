@@ -3,7 +3,7 @@ import { BindingPackage } from "../BindingPackage";
 import { BindingConfig, SysEmitter } from "../emitter/SysEmitter";
 import * as ts from "typescript"
 import { JSBClass } from "../binding/JSBClass";
-import { ClassEmitter } from "../emitter/ClassEmitter";
+import { ClassEmitter } from "../emitter/qjs/ClassEmitter";
 
 class MyJSBClass extends JSBClass{
 
@@ -287,6 +287,7 @@ using namespace Urho3D;`,
     let config:BindingConfig={
         packages:arr,
         cppPath:"../zyndaurho3d/Source/Urho3D/JavaScript/",
+        engine:"qjs",
         registerTypes:registerType(),
         customize:registerCustomize(),
         jsbClassCtor:MyJSBClass,

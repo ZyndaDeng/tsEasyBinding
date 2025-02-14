@@ -43,7 +43,7 @@ export class ArgDataBase implements ArgData {
         return "const char* n" + idx + "= js_to_cstring(ctx," + val + ");"
     }
     setFunc(): string {
-        return "JS_NewString(ctx,ret);"
+        return "JS_NewString(ctx,ret)"
     }
     constructor(p: ts.TypeNode, ignore?: boolean) {
         this.type = "string";
@@ -68,10 +68,10 @@ export class IntArg extends ArgDataBase {
         return "JS_IsInteger(" + val + ")";
     }
     getFunc(val: string,idx:number): string {
-        return "int n" + idx + "= JS_VALUE_GET_INT(" + val + ");"
+        return "int n" + idx + "= JS_ToInt32(context," + val + ");"
     }
     setFunc(): string {
-        return "JS_NewInt32(ctx,ret);"
+        return "JS_NewInt32(ctx,ret)"
     }
 }
 
@@ -87,7 +87,7 @@ export class Int64Arg extends ArgDataBase {
         return "long long n" + idx + "; JS_ToInt64(ctx,&n"+idx+"," + val + ");"
     }
     setFunc(): string {
-        return "JS_NewInt64(ctx,ret);"
+        return "JS_NewInt64(ctx,ret)"
     }
 }
 
@@ -100,10 +100,10 @@ export class EnumArg extends ArgDataBase {
         return "JS_IsInteger(" + val + ")";
     }
     getFunc(val: string,idx:number): string {
-        return this.enumName + " n" + idx + "=(" + this.enumName + ") JS_VALUE_GET_INT(" + val + ");"
+        return this.enumName + " n" + idx + "=(" + this.enumName + ") JS_ToInt32(context," + val + ");"
     }
     setFunc(): string {
-        return "JS_NewInt32(ctx,(int)ret);"
+        return "JS_NewInt32(ctx,(int)ret)"
     }
 }
 
@@ -116,10 +116,10 @@ export class UIntArg extends ArgDataBase {
         return "JS_IsInteger(" + val + ")";
     }
     getFunc(val: string,idx:number): string {
-        return "unsigned n" + idx + "= (unsigned)JS_VALUE_GET_INT(" + val + ");"
+        return "unsigned n" + idx + "= JS_ToUInt32(context," + val + ");"
     }
     setFunc(): string {
-        return "JS_NewInt32(ctx,ret);"
+        return "JS_NewInt32(ctx,ret)"
     }
 }
 
@@ -134,10 +134,10 @@ export class NumberArg extends ArgDataBase {
         return "JS_IsNumber(" + val + ")";
     }
     getFunc(val: string,idx:number): string {
-        return "double  n" + idx + "=0.0; JS_ToFloat64(ctx,&n"+idx+"," + val + ");"
+        return "double  n" + idx + "=JS_ToNumber(context," + val + ");"
     }
     setFunc(): string {
-        return "JS_NewFloat64(ctx,ret);"
+        return "JS_NewFloat64(ctx,ret)"
     }
 }
 
@@ -150,10 +150,11 @@ export class BoolArg extends ArgDataBase {
         return "JS_IsBool(" + val + ")";
     }
     getFunc(val: string,idx:number): string {
-        return "bool n" + idx + "= JS_VALUE_GET_BOOL(" + val + ") ? true : false;"
+        //return "bool n" + idx + "= JS_VALUE_GET_BOOL(" + val + ") ? true : false;"
+        return "bool n" + idx + "= JS_ToBool(context," + val + ");"
     }
     setFunc(): string {
-        return "JS_NewBool(ctx,ret?1:0);"
+        return "JS_NewBool(ctx,ret?1:0)"
     }
 }
 
@@ -167,15 +168,15 @@ export class ArrayArg extends ArgDataBase {
     }
     getFunc(val: string,idx:number): string {
         if(this.typeName=="String"||this.typeName=="string"){
-            return "Vector<String> n"+idx+"; js_to_normal_array(ctx,"+val+",n"+idx+",js_to_string);"
+            return "Vector<Base::String> n"+idx+"; js_to_vector(ctx,"+val+",n"+idx+");"
         }else if(this.typeName=="Variant"){
             return "VariantVector n"+idx+"; js_to_VariantVector(ctx,"+val+",n"+idx+");"
         }else if(this.typeName=="number"){
-            return "Vector<float> n"+idx+"; js_to_normal_array(ctx,"+val+",n"+idx+",js_to_number);"
+            return "Vector<float> n"+idx+"; js_to_vector(ctx,"+val+",n"+idx+");"
         }else if(this.typeName=="PointLike<float>"){
-            return "Vector<Point<float>> n"+idx+"; js_to_normal_array(ctx,"+val+",n"+idx+");"
+            return "Vector<Point<float>> n"+idx+"; js_to_vector(ctx,"+val+",n"+idx+");"
         }else{
-            return "Vector<"+this.typeName+"> n"+idx+"; js_to_normal_array(ctx,"+val+",n"+idx+");"
+            return "Vector<"+this.typeName+"> n"+idx+"; js_to_vector(ctx,"+val+",n"+idx+");"
         }
        
         //return "Vector2 n" + idx + "= js_to_vector2(ctx, " + idx + ");"
@@ -190,7 +191,7 @@ export class ArrayArg extends ArgDataBase {
         // }else if(this.typeName=="number"){
         //     return "js_push_normal_array(ctx,ret,JS_NewFloat64);"
         // }
-        return "js_push_normal_array(ctx,ret);"
+        return "js_pushArray(ctx,ret)"
     }
 }
 
@@ -206,7 +207,7 @@ export class DefaultTypeArg extends ArgDataBase{
         return this.type+" n" + idx + "= js_to_"+this.type+"(ctx, " + val + ");"
     }
     setFunc(): string {
-        return "js_push_"+this.type+"(ctx,ret);"
+        return "js_push_"+this.type+"(ctx,ret)"
     }
 }
 
@@ -222,7 +223,7 @@ export class DefaultRefTypeArg extends ArgDataBase{
         return this.type+" n" + idx + "= js_to_ref<"+this.type+">(ctx, " + val + ",js_"+this.type+"_id);"
     }
     setFunc(): string {
-        return "js_push_copy<"+this.type+">(ctx,ret,js_"+this.type+"_id);"
+        return "js_push_copy<"+this.type+">(ctx,ret,js_"+this.type+"_id)"
     }
 }
 
@@ -238,7 +239,7 @@ export class DefaultPtrTypeArg extends ArgDataBase{
         return this.type+"* n" + idx + "= js_to_ptr<"+this.type+">(ctx, " + val + ",js_"+this.type+"_id);"
     }
     setFunc(): string {
-        return "js_push_ptr<"+this.type+">(ctx,ret,js_"+this.type+"_id);"
+        return "js_push_ptr<"+this.type+">(ctx,ret,js_"+this.type+"_id)"
     }
 }
 
@@ -251,24 +252,27 @@ export class NativeArg extends ArgDataBase {
     }
     checkFunc(val: string): string {
         let jsbclass=JSBClass.classes[this.type];
-        let classId=jsbclass?.classId;
+        //let classId=jsbclass?.classId;
         let type=jsbclass?jsbclass.nativeName:this.type;
-        if(!classId)classId=type + "::GetType()->scriptClassId";
-        return "js_is_native(ctx," + val + ","+ classId+")";
+        //if(!classId)classId=type + "::GetType()->scriptClassId";
+        return "JS_IsNative("+type+",ctx," + val +")";
     }
     getFunc(val: string,idx:number): string {
         let jsbclass=JSBClass.classes[this.type];
         let type=jsbclass?jsbclass.nativeName:this.type;
-        return type + "* n" + idx + "=js_to_native_object<" + type + ">(ctx," + val + ");"
+        return type + "* n" + idx + "=JS_ToNativeObj(" + type + ",ctx," + val + ");"
     }
     setFunc(): string {
-        let classId=JSBClass.classes[this.type]?.classId;
-        if(classId&&classId.endsWith("->scriptClassId")){
-            //classId="ret->GetTypeInfo()->bindingId";
-            return `js_push_native_object(ctx,ret);`
-        }
+        // let classId=JSBClass.classes[this.type]?.classId;
+        // if(classId&&classId.endsWith("->scriptClassId")){
+        //     //classId="ret->GetTypeInfo()->bindingId";
+        //     return `js_push_native_object(ctx,ret)`
+        // }
+        // return `js_push_native_object(ctx,ret,` +classId  + `)`
+
+       return "js_pushObject(ctx,ret)"
         
-        return `js_push_native_object(ctx,ret,` +classId  + `);`
+        
     }
 }
 

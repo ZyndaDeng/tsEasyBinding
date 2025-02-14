@@ -41,6 +41,7 @@ export function onceConfig(){
     let config:BindingConfig={
         packages:arr,
         cppPath:"E:/Users/Mozat/Documents/Once/Src/ScriptBinding/",
+        engine:"qjs",
         jsbClassCtor:MyJSBClass,
         registerTypes:registerType(),
         customize:registerCustomize(),

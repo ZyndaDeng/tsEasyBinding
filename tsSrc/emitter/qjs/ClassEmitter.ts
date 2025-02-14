@@ -1,9 +1,9 @@
 
-import { ArgData } from "../ArgDatas";
-import { Emitter, IExport } from "./Emitter";
-import { Writter } from "../writter";
-import { customize } from "./SysEmitter";
-import { JSBClass, MethodData, GetterData } from "../binding/JSBClass";
+import { ArgData } from "../../ArgDatas";
+import { Emitter, IExport } from "../Emitter";
+import { Writter } from "../../writter";
+import { customize } from "../SysEmitter";
+import { JSBClass, MethodData, GetterData } from "../../binding/JSBClass";
 
 
 

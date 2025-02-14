@@ -4,8 +4,7 @@ import { BindingConfig, SysEmitter } from "../emitter/SysEmitter";
 import * as ts from "typescript"
 import { JSBClass } from "../binding/JSBClass";
 import { JSBCommonClass } from "../binding/JSBCustomize";
-import { ClassEmitter } from "../emitter/ClassEmitter";
-import {  SetDefaultClassEmitter } from "../emitter/EmitterFactory";
+import { ClassEmitter } from "../emitter/qjs/ClassEmitter";
 
 
 class MyJSBClass extends JSBClass{
@@ -52,7 +51,7 @@ class MyClassEmitter extends ClassEmitter{
     }
 }
 
-SetDefaultClassEmitter(MyClassEmitter)
+//SetDefaultClassEmitter(MyClassEmitter)
 
 export function unrealConfig(){
     let arr = new Array<BindingPackage>();
@@ -91,6 +90,7 @@ export function unrealConfig(){
     let config:BindingConfig={
         packages:arr,
         cppPath:"../YoungGame/Source/YoungGame/JavaScript/",
+        engine:"qjs",
         registerTypes:registerType(),
         customize:registerCustomize(),
         jsbClassCtor:MyJSBClass,
@@ -171,7 +171,7 @@ function registerType(){
             return "JS_IsInteger(" + val + ")";
         }
         getFunc(val: string,idx:number): string {
-            return this.enumName + "::Type n" + idx + "=(" + this.enumName + "::Type) JS_VALUE_GET_INT(" + val + ");"
+            return this.enumName + "::Type n" + idx + "=(" + this.enumName + "::Type) JS_ToInt32(" + val + ");"
         }
         setFunc(): string {
             return "JS_NewInt32(ctx,ret);"

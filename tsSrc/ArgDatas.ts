@@ -68,7 +68,7 @@ export class IntArg extends ArgDataBase {
         return "JS_IsInteger(" + val + ")";
     }
     getFunc(val: string,idx:number): string {
-        return "int n" + idx + "= JS_ToInt32(context," + val + ");"
+        return "int n" + idx + "; js_to(context," + val + ",n" + idx + ");"
     }
     setFunc(): string {
         return "JS_NewInt32(ctx,ret)"
@@ -84,7 +84,7 @@ export class Int64Arg extends ArgDataBase {
         return "JS_IsInteger(" + val + ")";
     }
     getFunc(val: string,idx:number): string {
-        return "long long n" + idx + "; JS_ToInt64(ctx,&n"+idx+"," + val + ");"
+        return "long long n" + idx + "; js_to(context," + val + ",n" + idx + ");"
     }
     setFunc(): string {
         return "JS_NewInt64(ctx,ret)"
@@ -100,7 +100,8 @@ export class EnumArg extends ArgDataBase {
         return "JS_IsInteger(" + val + ")";
     }
     getFunc(val: string,idx:number): string {
-        return this.enumName + " n" + idx + "=(" + this.enumName + ") JS_ToInt32(context," + val + ");"
+        return this.enumName + " n" + idx + "; js_to(context," + val + ",(int&)n" + idx + ");"
+        
     }
     setFunc(): string {
         return "JS_NewInt32(ctx,(int)ret)"
@@ -116,7 +117,7 @@ export class UIntArg extends ArgDataBase {
         return "JS_IsInteger(" + val + ")";
     }
     getFunc(val: string,idx:number): string {
-        return "unsigned n" + idx + "= JS_ToUInt32(context," + val + ");"
+        return "unsigned n" + idx + "; js_to(context," + val + ",n" + idx + ");"
     }
     setFunc(): string {
         return "JS_NewInt32(ctx,ret)"
@@ -134,7 +135,8 @@ export class NumberArg extends ArgDataBase {
         return "JS_IsNumber(" + val + ")";
     }
     getFunc(val: string,idx:number): string {
-        return "double  n" + idx + "=JS_ToNumber(context," + val + ");"
+         return "double n" + idx + "; js_to(context," + val + ",n" + idx + ");"
+        
     }
     setFunc(): string {
         return "JS_NewFloat64(ctx,ret)"
@@ -151,7 +153,8 @@ export class BoolArg extends ArgDataBase {
     }
     getFunc(val: string,idx:number): string {
         //return "bool n" + idx + "= JS_VALUE_GET_BOOL(" + val + ") ? true : false;"
-        return "bool n" + idx + "= JS_ToBool(context," + val + ");"
+        return "bool n" + idx + "; js_to(context," + val + ",n" + idx + ");"
+        
     }
     setFunc(): string {
         return "JS_NewBool(ctx,ret?1:0)"

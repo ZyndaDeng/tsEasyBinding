@@ -27,6 +27,7 @@ export type JsEngine="v8"|"qjs"
 export interface BindingConfig {
     packages: IBindingPackage[];
     cppPath: string;
+    outputModulePath?:string
     registerTypes:RegisterTypeMap;
     engine:JsEngine;
     /**自定义的转换函数 */
@@ -190,6 +191,7 @@ export class SysEmitter {
             process.push(this.processData);
         }
 
+        let mWritter=new Writter("");
         for (let i = 0; i < arr.length; i++) {
             let a = arr[i];
             let pData = process[i];
@@ -208,10 +210,30 @@ export class SysEmitter {
                 e.emitDefine();
             }
             writter.newLine();
-            writter.writeText(" void " + this.packageName(a) + "( V8JS::JSContext* ctx)").writeLeftBracket().newLine();
+            if(this.config.engine=="v8"){
+                writter.writeText(" void " + this.packageName(a) + "( V8JS::JSContext* ctx)").writeLeftBracket().newLine();
+            }else{
+                writter.writeText(" void " + this.packageName(a) + "( jsb::Context& ctx)").writeLeftBracket().newLine();
+            }
+            
+            
+            
             for (let e of emitters) {
                 e.emitBinding();
             }
+
+            if(this.config.outputModulePath){
+                for(let d of pData){
+                    if( d instanceof JSBModule){
+                        let members=d.members;
+                        for(let m of members){
+                            mWritter.writeText("export const "+m.name+"="+d.name+"."+m.name).newLine();
+                        }
+                    }
+                   
+                }
+            }
+           
             writter.newLine().writeRightBracket().newLine();
             fs.writeFile(Sys.getFullFileName(this.config.cppPath+"jsbApis/" + a.name + ".cpp"), writter.str, { encoding: "UTF-8" }, (err) => {
                 if (err) {
@@ -224,6 +246,17 @@ export class SysEmitter {
                     console.log("运行完毕");
                 }
             });
+        }
+
+        if(this.config.outputModulePath){
+                
+            fs.writeFile(Sys.getFullFileName(this.config.outputModulePath),mWritter.str,{ encoding: "UTF-8" }, (err) => {
+                if (err) {
+                    console.log("文件写入失败:" + err.message);
+                } else {
+                    console.log("写入成功:" + this.config.outputModulePath);
+                }
+            })
         }
     }
 

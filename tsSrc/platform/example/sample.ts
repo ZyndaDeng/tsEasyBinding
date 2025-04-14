@@ -15,7 +15,7 @@ class MyJSBClass extends JSBClass{
 
     get classId(){
         if(this.isInstanceof(JSBClass.classes["Object"])){
-            return this.nativeName + "::GetType()->scriptClassId";
+            return this.nativeName + "::GetType()->classId";
         }else{
             return "js_"+this.nativeName+"_id";
         }  

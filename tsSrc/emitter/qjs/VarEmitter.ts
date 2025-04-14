@@ -20,7 +20,7 @@ export class VarEmitter implements Emitter{
         let w=new Writter("");
         w.writeText("jsb::Value " + this.funcName() + "(const jsb::Context& ctx)").writeLeftBracket().newLine();
         w.writeText("auto ret=" + this.data.nativeName  + ";").newLine();
-        w.writeText(this.data.arg.setFunc()).newLine();
+        w.writeText(this.data.arg.setFunc()).writeText(";").newLine();
         w.writeText("ctx.newValue("+this.data.arg.setFunc()+");").newLine();
         w.writeRightBracket().newLine();
     }

@@ -14,7 +14,7 @@ export class ClassEmitter implements Emitter {
         let extendId = "0";
         if (this.data.extend.length > 0) {
            
-            extendId = this.data.extend + "::GetType()->scriptClassId";
+            extendId = this.data.extend + "::GetType()->classId";
             if (this.data.extend == "RefCounted") {
                 extendId = "js_RefCounted_id";
             }else if(this.data.extend == "Object"){
@@ -189,7 +189,7 @@ export class ClassEmitter implements Emitter {
             argsInside += ");";
             if (returnType) {
                 w.writeText("auto ret=" + nativeName + "::" + f.nativeName + argsInside).newLine();
-                w.writeText("return ").writeText(returnType.setFunc()).newLine();
+                w.writeText("return ").writeText(returnType.setFunc()).writeText(";").newLine();
             } else {
                 w.writeText(nativeName + "::" + f.nativeName + argsInside).newLine();
                 w.writeText("return JS_UNDEFINED;").newLine();
@@ -260,6 +260,7 @@ export class ClassEmitter implements Emitter {
             w.writeLeftBracket().newLine();
 
             let next = () => { w.writeText("") }
+            this.writeFitBaseArg(w);
             this.buildFuncWithArgs(w, f, f.args,f.returnType);
             w.newLine();
             if (f.override) {
@@ -296,6 +297,7 @@ export class ClassEmitter implements Emitter {
             w.writeText("static JSValue " + this.getterName(g, true) + "(JSContext* ctx, JSValueConst this_val)").newLine();
             w.writeLeftBracket().newLine();
 
+            this.writeFitBaseArg(w);
             let nativeName = this.data.name;
             if (this.data.nativeName) nativeName = this.data.nativeName;
             let nameEnd = "()";
@@ -304,12 +306,12 @@ export class ClassEmitter implements Emitter {
             }
             if (g.isStatic) {
                 w.writeText("auto ret=" + nativeName + "::" + g.get.name + nameEnd + ";").newLine();
-                w.writeText("return ").writeText(this.buildReturn(g.type)).newLine();
+                w.writeText("return ").writeText(this.buildReturn(g.type)).writeText(";").newLine();
                 w.writeRightBracket().newLine();
             } else {
                 w.writeText(nativeName + " *native = js_to_native_object<" + nativeName + ">(ctx, this_val);").newLine();
                 w.writeText("auto ret=native->" + g.get.name + nameEnd + ";").newLine();
-                w.writeText("return ").writeText(this.buildReturn(g.type)).newLine();
+                w.writeText("return ").writeText(this.buildReturn(g.type)).writeText(";").newLine();
                 w.writeRightBracket().newLine();
             }
         }
@@ -317,6 +319,7 @@ export class ClassEmitter implements Emitter {
         if (g.set) {
             w.writeText("static JSValue " + this.getterName(g, false) + "(JSContext* ctx, JSValueConst this_val, JSValueConst val)").newLine();
             w.writeLeftBracket().newLine();
+            this.writeFitBaseArg(w);
 
             let nativeName = this.data.name;
             if (this.data.nativeName) nativeName = this.data.nativeName;
@@ -338,6 +341,11 @@ export class ClassEmitter implements Emitter {
         }
         w.newLine();
 
+    }
+
+    protected writeFitBaseArg(w:Writter){
+       
+        w.writeText("auto context = ctx;").newLine();
     }
 
     protected getterName(g: GetterData, isGetter: boolean) {
@@ -391,6 +399,7 @@ export class ClassEmitter implements Emitter {
     protected buildNativeCtor(w: Writter) {
         let nativeName = this.data.nativeName;
 
+        this.writeFitBaseArg(w);
         w.writeText(nativeName + "* native=nullptr;").newLine();
         if (this.data.ctor) {
             this.buildCtorWithArg(w, this.data.ctor);
@@ -510,7 +519,7 @@ export class ClassEmitter implements Emitter {
         this.hasOpr=true;
     }
         if (returnType) {
-            w.writeText("return ").writeText(this.buildReturn(returnType)).newLine();
+            w.writeText("return ").writeText(this.buildReturn(returnType)).writeText(";").newLine();
         } else {
             w.writeText("return JS_UNDEFINED;").newLine();
         }

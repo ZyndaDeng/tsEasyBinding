@@ -17,7 +17,7 @@ class MyJSBClass extends JSBClass{
 
     get classId(){
         if(this.isInstanceof(JSBClass.classes["Object"])){
-            return this.nativeName + "::GetType()->scriptClassId";
+            return this.nativeName + "::GetType()->classId";
         }else{
             return "js_"+this.nativeName+"_id";
         }  
@@ -29,18 +29,18 @@ export function onceConfig(){
     arr.push(new BindingPackage(
         `#include "bindingImport.h"`,
         "CoreApi",
-        ["E:/Users/Mozat/Documents/Once/tsProj/once/Core.d.ts"]
+        ["F:/Users/Mozat/Documents/Once/tsProj/once/Core.d.ts"]
     ))
     arr.push(new BindingPackage(
         `#include "bindingImport.h"`,
         "VirtualSystemApi",
-        ["E:/Users/Mozat/Documents/Once/tsProj/once/VirtualSystem.d.ts"]
+        ["F:/Users/Mozat/Documents/Once/tsProj/once/VirtualSystem.d.ts"]
     ))
     
 
     let config:BindingConfig={
         packages:arr,
-        cppPath:"E:/Users/Mozat/Documents/Once/Src/ScriptBinding/",
+        cppPath:"F:/Users/Mozat/Documents/Once/Src/ScriptBinding/",
         engine:"qjs",
         jsbClassCtor:MyJSBClass,
         registerTypes:registerType(),
@@ -48,7 +48,8 @@ export function onceConfig(){
     }
     //外部的enum
     enumDefined.push("ImagePixelFormat")
-    enumDefined.push("AttributeType")
+    enumDefined.push("ValueType")
+    enumDefined.push("VertexType")
     enumDefined.push("PrimitiveType")
     enumDefined.push("TextDrawAlign")
     enumDefined.push("UrlType")
@@ -142,6 +143,23 @@ function registerType(){
         }
     }
     ret["IPaint"] = IPaintArg
+
+    class PipelineStateDescArg extends ArgDataBase {
+        constructor(p: ts.TypeNode, def?: boolean) {
+            super(p, def);
+            this.type = "PipelineStateDesc";
+        }
+        getFunc(val: string, idx: number): string {
+            return "PipelineStateDesc n" + idx + "; js_to(ctx, " + val + ",n" + idx + ");"
+        }
+        setFunc(): string {
+            throw new Error("can not set PipelineStateDesc")
+        }
+        checkFunc(val: string): string {
+            return "JS_IsObject(" + val + ")";
+        }
+    }
+    ret["PipelineStateDesc"] = PipelineStateDescArg
 
     class PointFArg extends ArgDataBase {
         constructor(p: ts.TypeNode, def?: boolean) {

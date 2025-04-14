@@ -31,7 +31,7 @@ export class ModuleEmitter implements Emitter{
     }
 
     export(name:string,value:string):void{
-        this.w.writeText("m->Set(ctx->ctx,JS_NewString(ctx, \""+name+"\"),"+value+");");
+        this.w.writeText("m->Set(ctx->getCtx(),JS_NewString(ctx, \""+name+"\"),"+value+");");
     }
     
     constructor(protected data:JSBModule,protected w:Writter,protected factory:IEmitterFactory){

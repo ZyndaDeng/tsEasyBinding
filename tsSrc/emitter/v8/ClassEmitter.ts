@@ -78,7 +78,7 @@ export class ClassEmitter implements Emitter {
             w.writeText("c."+func+"(\"" + g.name + "\"," + this.getterName(g, true) + "," + this.getterName(g, false) + ");").newLine();
         }
        // if(this.hasOpr)w.writeText("ctx.setDefOpr(c.prototype);").newLine();
-       w.writeText("return c.ctor->GetFunction(ctx->ctx).ToLocalChecked();").newLine();
+       w.writeText("return c.ctor->GetFunction(ctx->getCtx()).ToLocalChecked();").newLine();
         w.writeRightBracket().newLine();
 
     }
@@ -136,9 +136,11 @@ export class ClassEmitter implements Emitter {
             if (returnType) {
                 w.writeText("auto ret=" + nativeName + "::" + f.nativeName + argsInside).newLine();
                 w.writeText("args.GetReturnValue().Set(").writeText(returnType.setFunc()).writeText(")").newLine();
+                w.writeText("return; ");
                // w.writeText("return ").writeText(returnType.setFunc()).newLine();
             } else {
                 w.writeText(nativeName + "::" + f.nativeName + argsInside).newLine();
+                w.writeText("return; ");
                 //w.writeText("return JS_UNDEFINED;").newLine();
             }
         } else {
@@ -471,8 +473,10 @@ export class ClassEmitter implements Emitter {
     }
         if (returnType) {
             w.writeText("args.GetReturnValue().Set(").writeText(this.buildReturn(returnType)).writeText(");").newLine();
+            w.writeText("return; ");
            // w.writeText("return ").writeText(this.buildReturn(returnType)).newLine();
         } else {
+            w.writeText("return; ");
            // w.writeText("return JS_UNDEFINED;").newLine();
         }
     }

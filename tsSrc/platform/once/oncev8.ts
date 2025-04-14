@@ -25,18 +25,19 @@ export function oncev8Config(){
     arr.push(new BindingPackage(
         `#include "bindingImport.h"`,
         "CoreApi",
-        ["E:/Users/Mozat/Documents/Once/tsProj/once/Core.d.ts"]
+        ["F:/Users/Mozat/Documents/Once/tsProj/once/Core.d.ts"]
     ))
     arr.push(new BindingPackage(
         `#include "bindingImport.h"`,
         "VirtualSystemApi",
-        ["E:/Users/Mozat/Documents/Once/tsProj/once/VirtualSystem.d.ts"]
+        ["F:/Users/Mozat/Documents/Once/tsProj/once/VirtualSystem.d.ts"]
     ))
     
 
     let config:BindingConfig={
         packages:arr,
-        cppPath:"E:/Users/Mozat/Documents/Once/Src/V8ScriptBinding/",
+        cppPath:"F:/Users/Mozat/Documents/Once/Src/V8ScriptBinding/",
+        outputModulePath:"F:/Users/Mozat/Documents/Once/out/scripts/module4v8.js",
         engine:"v8",
         jsbClassCtor:MyJSBClass,
         registerTypes:registerType(),

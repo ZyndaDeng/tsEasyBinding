@@ -37,7 +37,7 @@ export class FuncEmitter implements Emitter {
         argsInside += ")";
         if (this.data.returnType) {
             w.writeText("auto ret=" + this.data.name + argsInside + ";").newLine();
-            w.writeText("return ").writeText(this.data.returnType.setFunc()).newLine();
+            w.writeText("return ").writeText(this.data.returnType.setFunc()).writeText(";").newLine();
         } else {
             w.writeText(this.data.name + argsInside + ";").newLine();
             w.writeText("return JS_UNDEFINED;");

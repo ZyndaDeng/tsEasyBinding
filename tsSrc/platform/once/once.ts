@@ -50,6 +50,7 @@ export function onceConfig(){
     enumDefined.push("ImagePixelFormat")
     enumDefined.push("ValueType")
     enumDefined.push("VertexType")
+    enumDefined.push("Usage")
     enumDefined.push("PrimitiveType")
     enumDefined.push("TextDrawAlign")
     enumDefined.push("UrlType")

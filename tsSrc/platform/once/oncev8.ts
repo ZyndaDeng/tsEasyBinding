@@ -47,6 +47,7 @@ export function oncev8Config(){
     enumDefined.push("ImagePixelFormat")
     enumDefined.push("AttributeType")
     enumDefined.push("PrimitiveType")
+    enumDefined.push("Usage")
     enumDefined.push("TextDrawAlign")
     enumDefined.push("UrlType")
     enumDefined.push("FileEvent")
